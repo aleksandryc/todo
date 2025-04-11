@@ -32,13 +32,13 @@
                 />
                 <div v-if="page.props.errors" v-text="page.props.errors.email" class="mt-4 text-center text-xs text-red-500"></div>
             </div>
-            <div class="mb-5">
+            <div class="mb-5 border-spacing-1 border-y-2 border-gray-400 rounded-lg p-2">
                 <label for="users" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Choose an users:</label>
                 <select multiple class="flex min-w-full bg-transparent text-gray-300" name="users" id="users" size="6" v-model="form.users">
                     <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
                 </select>
             </div>
-            <div class="mb-5">
+            <div class="mb-5 border-spacing-1 border-y-2 border-gray-400 rounded-lg p-2">
                 <label for="status" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Choose a status:</label>
                 <select class="flex min-w-full bg-transparent text-gray-100" name="status" id="status" size="1" v-model="form.status">
                     <option
