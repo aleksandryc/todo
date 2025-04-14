@@ -29,4 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks');
     Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
     Route::post('/tasks', [TaskController::class, 'store']);
+    Route::get('/tasks/{task}/update', [TaskController::class, 'edit']);
+    Route::post('/tasks/{task}/update', [TaskController::class, 'update']);
+    Route::post('/tasks/{task}/delete', [TaskController::class, 'destroy']);
 });
