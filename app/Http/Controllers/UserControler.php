@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -39,6 +40,21 @@ class UserControler extends Controller
     {
         return Inertia::render('Welcome', [
             'time' => now()->toTimeString(),
+            'stats' => [
+            'allTasks' => Task::count(),
+            'completedTasks' => Task::where('status', 'completed')->count(),
+            'pendingTasks' => Task::where('status', 'pending')->count(),
+            'inProgressTasks' => Task::where('status', 'in_progress')->count(),
+            'usersCount' => User::count(),
+            'usersWithoutTasks' => User::doesntHave('tasks')->count(),
+            'usersWithTasks' => User::has('tasks')->count(),
+            'listOfUsersWOTasks' => User::doesntHave('tasks')->get()->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                ];
+            }),
+            ]
         ]);
     }
 

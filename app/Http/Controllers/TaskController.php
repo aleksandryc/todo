@@ -66,7 +66,7 @@ class TaskController extends Controller
             'description' => $attributes['description'],
             'status' => $attributes['status'],
         ])->users()->attach($attributes['users']);
-        return redirect('/tasks')->with('message', 'User created successfully');
+        return redirect('/tasks')->with('message', 'Task created successfully');
     }
 
     public function edit()
@@ -106,7 +106,7 @@ class TaskController extends Controller
         ]);
 
         $taskModel->users()->sync($validation['seluser'] ?? []);
-        return redirect('/tasks')->with('message', 'User updated successfully');
+        return redirect('/tasks')->with('message', 'Task updated successfully');
     }
 
     public function destroy($id)
