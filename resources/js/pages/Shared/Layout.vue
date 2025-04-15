@@ -2,7 +2,7 @@
     <AppHead :title="appname">
 
     </AppHead>
-    <div class="mb-8 flex min-h-8 justify-between border-b border-white bg-slate-900">
+    <div class="mb-8 flex min-h-8 justify-between border-b border-white bg-slate-900 sticky top-0 z-50">
         <Header />
 
         <Nav />

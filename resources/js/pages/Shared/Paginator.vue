@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/no-v-text-v-html-on-component -->
 <template>
-    <div class="">
+    <div class="mb-4">
         <div v-if="!users?.length">
             <div class="flex  justify-between">
                 <template v-for="(link, key) in users?.links">
@@ -13,8 +13,8 @@
                     <Link
                         v-else
                         :key="`link-${key}`"
-                        class=" mr-1 rounded border px-4 py-3 text-sm leading-4 hover:bg-slate-800 focus:border-indigo-500 focus:text-indigo-500"
-                        :class="{ 'bg-rose-900': link.active }"
+                        class=" mr-1 rounded border px-4 py-3 text-sm leading-4 hover:bg-slate-800 hover:shadow-md hover:shadow-blue-400 focus:border-indigo-500 focus:text-indigo-500"
+                        :class="{ 'bg-amber-50 ml-4 mr-4': link.active }"
                         :href="link.url"
                         v-html="link.label"
                     />

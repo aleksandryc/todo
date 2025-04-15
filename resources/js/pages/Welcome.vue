@@ -85,7 +85,7 @@ const math = computed(() => {
 
     <div>
         <label for="users" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Users without task</label>
-        <div class="mt-3 container mx-auto min-h-28 max-w-auto rounded-xl bg-transparent shadow-md shadow-slate-400 md:max-w-2xl border-solid border-2 border-gray-200">
+        <div id="users" class="container min-h-28 max-w-auto rounded-xl bg-transparent shadow-md shadow-slate-400 md:max-w-2xl border-solid border-2 border-gray-200">
             <p v-for="(user, index) in props.stats?.listOfUsersWOTasks" :key="index" value="user" class="ml-2 p-1">{{ user.name }}</p>
         </div>
     </div>

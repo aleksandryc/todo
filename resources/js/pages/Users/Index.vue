@@ -25,14 +25,14 @@ watch(
     <div class="mb-6 flex justify-between border-b border-green-100 p-2">
         <div class="flex items-center">
             <p class="text-3xl">This is users page!</p>
-            <Link v-if="can?.create" href="/users/create" class="text-shadow-lg/30 mt-2 rounded-md px-4 text-green-100">Create new user</Link>
+            <Link v-if="can?.create" href="/users/create" class="text-shadow-lg/30 mt-2 rounded-md px-4 text-green-100 hover:shadow-md hover:shadow-blue-400 ml-4 ">Create new user</Link>
         </div>
         <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2" />
     </div>
     <div class="container mx-auto max-w-screen-md">
         <div class="relative overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
-                <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+            <table class="table-auto w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="w-1/4 px-6 py-3 text-center">User avatar</th>
                         <th scope="col" class="px-6 py-3">Unser name</th>
@@ -40,9 +40,9 @@ watch(
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="user, index in users?.data" :key="user.id" class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" :class="{'dark:bg-slate-700': index % 2 === 1}" >
+                    <tr v-for="user in users?.data" :key="user.id" class="dark:odd:bg-gray-900/50 dark:even:bg-gray-950 first:border-y-sky-300/85 first:border-t-2">
                         <td scope="row" class="justify-items-center whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
-                            <img class="size-12 flex-none rounded-full bg-gray-50" :src="'https://robohash.org/' + user.name + '.png'" alt="" />
+                            <img class="size-11 shadow-md shadow-blue-200 rounded-2xl bg-amber-50" :src="'https://robohash.org/' + user.name + '.png'" alt="" />
                         </td>
                         <td class="px-6 py-4">
                             <p class="text-lg font-semibold text-white">{{ user.name }}</p>
@@ -59,7 +59,7 @@ watch(
                 <tfoot>
                     <tr>
                         <td colspan="3">
-                            <div class="container mx-auto flex justify-center">
+                            <div class="container mt-2 mx-auto flex justify-center">
                                 <Paginator :users="users" />
                             </div>
                         </td>
