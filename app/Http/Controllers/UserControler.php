@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -63,14 +64,13 @@ class UserControler extends Controller
         return Inertia::render('Users/Create');
     }
 
-    public function store()
+    public function store(UpdateUserRequest $request)
     {
-        $attributes = request()->validate([
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required',
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
         ]);
-        User::create($attributes);
         return redirect('/users')->with('message', 'User created successfully');
     }
 
