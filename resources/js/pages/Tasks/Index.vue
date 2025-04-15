@@ -1,8 +1,8 @@
 <template>
-    <div>
+    <div class="container mx-auto flex justify-center">
         <h1 class="mb-8 text-3xl">This is tasks page!</h1>
     </div>
-    <div class="flex justify-between">
+    <div class="container flex justify-between">
         <Link
             href="/tasks/create"
             class="mb-4 inline-flex items-center rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
@@ -10,15 +10,15 @@
             Create Task</Link
         >
 
-        <input v-model="search" type="text" placeholder="search..." class="mr-16 rounded-md border-2 border-gray-200 p-2 text-black" />
+        <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-black" />
     </div>
-    <div  class="ml-1 flex flex-wrap space-x-2">
-        <div v-for="task in tasks" :key="task.id" class="relative my-6 flex w-72 flex-col rounded-lg border border-slate-200 shadow-sm">
+    <div  class="container mx-auto justify-center flex flex-wrap">
+        <div v-for="task in tasks" :key="task.id" class="relative my-4 mx-2 flex w-72 flex-col rounded-lg border border-slate-200 shadow-sm max-h-44 overflow-auto">
             <Link :href="'/tasks/'+ task.id + '/update'">
-                <div class="mx-3 mb-0 flex justify-between border-b border-slate-200 px-1 pb-2 pt-3">
+                <div class="mx-3 flex justify-between border-b border-slate-200 px-1 pb-2 pt-3">
                     <span class="text-sm font-medium text-white"> {{ task.name }} </span>
                     <span
-                        class="text-sm font-medium"
+                        class="text-sm font-medium p-1"
                         :class="{
                             'text-green-500': task.status === 'completed',
                             'text-yellow-500': task.status === 'in_progress',

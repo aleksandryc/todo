@@ -8,7 +8,7 @@ import Paginator from '../Shared/Paginator.vue';
 const props = defineProps({
     users: Object,
     filters: Object,
-    can: Object
+    can: Object,
 });
 
 const search = ref(props.filters?.search);
@@ -29,22 +29,43 @@ watch(
         </div>
         <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-black" />
     </div>
-
-    <section>
-        <ul v-for="user in users?.data" :key="user.id" role="list" class="divide-y divide-gray-100">
-            <li class="flex justify-between space-x-6 py-4">
-                <div class="flex min-w-0 gap-x-4">
-                    <img class="size-12 flex-none rounded-full bg-gray-50" :src="'https://robohash.org/' + user.name + '.png'" alt="" />
-                    <div class="min-w-0 flex-auto p-3">
-                        <p class="text-sm/6 font-semibold text-white">{{ user.name }}</p>
-                    </div>
-                </div>
-                <div v-if="user.can?.update" class="hidden space-x-2 shrink-0 sm:flex sm:flex-col sm:items-end">
-                    <Link :href="'/users/' + user.id + '/edit'" class="text-sm/6 text-white space-x-2" as="button" method="get">Edit</Link>
-                </div>
-
-            </li>
-        </ul>
-    </section>
-    <Paginator :users="users" />
+    <div class="container mx-auto max-w-screen-md">
+        <div class="relative overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400 rtl:text-right">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="w-1/4 px-6 py-3 text-center">User avatar</th>
+                        <th scope="col" class="px-6 py-3">Unser name</th>
+                        <th scope="col" class="px-6 py-3 text-right">Rules</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="user, index in users?.data" :key="user.id" class="border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800" :class="{'dark:bg-slate-700': index % 2 === 1}" >
+                        <td scope="row" class="justify-items-center whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
+                            <img class="size-12 flex-none rounded-full bg-gray-50" :src="'https://robohash.org/' + user.name + '.png'" alt="" />
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-lg font-semibold text-white">{{ user.name }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div v-if="user.can?.update" class="hidden shrink-0 space-x-2 sm:flex sm:flex-col sm:items-end">
+                                <Link :href="'/users/' + user.id + '/edit'" class="space-x-2 text-sm/6 text-white" as="button" method="get"
+                                    >Edit</Link
+                                >
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">
+                            <div class="container mx-auto flex justify-center">
+                                <Paginator :users="users" />
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
 </template>
