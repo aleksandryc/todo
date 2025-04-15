@@ -7,6 +7,10 @@ html {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    display: none;
+  }
 
 @layer base {
     :root {

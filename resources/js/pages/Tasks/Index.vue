@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto flex justify-center">
-        <h1 class="mb-8 text-3xl">This is tasks page!</h1>
+        <h1 class="mb-8 text-3xl shadow-red-200 shadow-lg">This is tasks page!</h1>
     </div>
     <div class="container flex justify-between">
         <Link
@@ -13,7 +13,7 @@
         <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-black" />
     </div>
     <div  class="container mx-auto justify-center flex flex-wrap">
-        <div v-for="task in tasks" :key="task.id" class="relative my-4 mx-2 flex w-72 flex-col rounded-lg border border-slate-200 shadow-sm max-h-44 overflow-auto">
+        <div v-for="task in tasks" :key="task.id" class="relative flex w-[20%] m-6 flex-col rounded-lg border border-gray-800 shadow-lg shadow-slate-200  max-h-44 overflow-auto" >
             <Link :href="'/tasks/'+ task.id + '/update'">
                 <div class="mx-3 flex justify-between border-b border-slate-200 px-1 pb-2 pt-3">
                     <span class="text-sm font-medium text-white"> {{ task.name }} </span>

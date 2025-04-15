@@ -85,9 +85,9 @@ const math = computed(() => {
 
     <div>
         <label for="users" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Users without task</label>
-        <select size="6" name="users" id="users" class="mt-3 container mx-auto max-w-auto rounded-xl bg-transparent shadow-md md:max-w-2xl border-solid border-2 border-gray-200">
-            <option v-for="(user, index) in props.stats?.listOfUsersWOTasks" :key="index" value="user" class="ml-2 p-1">{{ user.name }}</option>
-        </select>
+        <div class="mt-3 container mx-auto min-h-28 max-w-auto rounded-xl bg-transparent shadow-md shadow-slate-400 md:max-w-2xl border-solid border-2 border-gray-200">
+            <p v-for="(user, index) in props.stats?.listOfUsersWOTasks" :key="index" value="user" class="ml-2 p-1">{{ user.name }}</p>
+        </div>
     </div>
     <div style="margin-top: 800px">
         <p>The current time is {{ time }}</p>
