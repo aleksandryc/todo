@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto flex justify-center">
-        <h1 class="mb-8 text-3xl shadow-red-200 shadow-lg">This is tasks page!</h1>
+        <h1 class="mb-8 text-3xl tracking-wide text-shadow-lg">This is tasks page!</h1>
     </div>
     <div class="container flex justify-between">
         <Link
