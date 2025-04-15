@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController as AuthLoginController;
+use App\Http\Controllers\CarController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodosController;
 use App\Http\Controllers\UserControler;
@@ -32,4 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/tasks/{task}/update', [TaskController::class, 'edit']);
     Route::post('/tasks/{task}/update', [TaskController::class, 'update']);
     Route::post('/tasks/{task}/delete', [TaskController::class, 'destroy']);
+
+    Route::get('/car', [CarController::class, 'index'])->name('car');
 });
+
+
