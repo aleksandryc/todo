@@ -27,7 +27,7 @@ watch(
             <p class="text-3xl">This is users page!</p>
             <Link v-if="can?.create" href="/users/create" class="text-shadow-lg/30 mt-2 rounded-md px-4 text-green-100">Create new user</Link>
         </div>
-        <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-black" />
+        <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2" />
     </div>
     <div class="container mx-auto max-w-screen-md">
         <div class="relative overflow-x-auto">

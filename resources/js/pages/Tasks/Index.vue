@@ -1,6 +1,7 @@
 <template>
+    <AppHead title="List of users tasks" />
     <div class="container mx-auto flex justify-center">
-        <h1 class="mb-8 text-3xl tracking-wide text-shadow-lg">This is tasks page!</h1>
+        <h1 class="mb-8 text-white text-3xl tracking-wide text-shadow-red-600">This is tasks page!</h1>
     </div>
     <div class="container flex justify-between">
         <Link
@@ -10,7 +11,7 @@
             Create Task</Link
         >
 
-        <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-black" />
+        <input v-model="search" type="text" placeholder="search..." class="rounded-md border-2 border-gray-200 p-2 text-amber-50 bg-black" />
     </div>
     <div  class="container mx-auto justify-center flex flex-wrap">
         <div v-for="task in tasks" :key="task.id" class="relative flex w-[20%] m-6 flex-col rounded-lg border border-gray-800 shadow-lg shadow-slate-200  max-h-44 overflow-auto" >
@@ -40,6 +41,7 @@
 import { Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash';
 import { ref, watch } from 'vue';
+import AppHead from '../Shared/AppHead.vue';
 
 const props = defineProps({
     tasks: Object,

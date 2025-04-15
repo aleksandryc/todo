@@ -8,7 +8,7 @@
         @vite(['resources/js/app.ts'])
         @inertiaHead
     </head>
-    <body>
+    <body class="text-white dark:text-white">
         <section class="bg-slate-900 min-h-screen">
             @inertia
         </section>

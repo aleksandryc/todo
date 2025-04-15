@@ -1,14 +1,15 @@
 import vue from '@vitejs/plugin-vue';
-import autoprefixer from 'autoprefixer';
+//import autoprefixer from 'autoprefixer';
 import laravel from 'laravel-vite-plugin';
 import path from 'path';
-import tailwindcss from 'tailwindcss';
+import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import DefineOptions from 'unplugin-vue-define-options/vite'
 
 export default defineConfig({
     plugins: [
+        tailwindcss(),
         DefineOptions(),
         laravel({
             input: ['resources/js/app.ts'],
@@ -30,9 +31,9 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
-    css: {
+    /* css: {
         postcss: {
-            plugins: [tailwindcss, autoprefixer],
+            plugins: [autoprefixer, tailwindcss],
         },
-    },
+    }, */
 });
