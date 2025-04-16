@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('processes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('table_id')->constrained()->onDelete('cascade'); // Table
-            $table->foreignId('workshop_id')->constrained()->onDelete('cascade'); // Workshop
+            $table->foreignId('workshops_id')->constrained()->onDelete('cascade'); // Workshop
             $table->string('status')->default('in_progress'); // Status: 'in_progress', 'completed'
             $table->timestamps();
         });

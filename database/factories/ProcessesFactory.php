@@ -22,7 +22,7 @@ class ProcessesFactory extends Factory
     {
         return [
             'table_id' => Tables::factory(),
-            'workshop_id' => Workshops::factory(),
+            'workshops_id' => Workshops::factory(),
             'status' => 'in_progress'
         ];
     }

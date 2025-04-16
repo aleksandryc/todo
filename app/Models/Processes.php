@@ -12,7 +12,7 @@ class Processes extends Model
 
     protected $fiillable = [
         'table_id',
-        'workshop_id',
+        'workshops_id',
         'status',
     ];
 

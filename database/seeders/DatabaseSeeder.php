@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
         Tables::all()->each(function ($table) {
             Processes::factory()->create([
                 'table_id' => $table->id,
-                'workshop_id' => Workshops::where('name', 'acceptance')->first()->id,
+                'workshops_id' => Workshops::where('name', 'acceptance')->first()->id,
             ]);
         });
     }
