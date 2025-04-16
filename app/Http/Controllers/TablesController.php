@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tables;
 use App\Http\Requests\StoreTablesRequest;
 use App\Http\Requests\UpdateTablesRequest;
+use Inertia\Inertia;
 
 class TablesController extends Controller
 {
@@ -13,7 +14,13 @@ class TablesController extends Controller
      */
     public function index()
     {
-        //
+        $tables = Tables::query()
+        ->with('order')
+        ->get();
+
+        return Inertia::render('Name/Tables/Index', [
+            'tables' => $tables
+        ]);
     }
 
     /**

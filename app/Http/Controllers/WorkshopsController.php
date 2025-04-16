@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Workshops;
 use App\Http\Requests\StoreWorkshopsRequest;
 use App\Http\Requests\UpdateWorkshopsRequest;
+use Inertia\Inertia;
 
 class WorkshopsController extends Controller
 {
@@ -13,7 +14,22 @@ class WorkshopsController extends Controller
      */
     public function index()
     {
-        //
+        $workshops = Workshops::query()
+        ->with(['processes' => fn($query) => $query->where('status', 'in_progress')])->get();
+        return Inertia::render('Name/Workshops/Index', [
+            'workshops' => $workshops
+        ]);
+    }
+
+    public function workerWorkshop()
+    {
+        // Need aditional logic
+        $workshops = Workshops::query()
+        ->where('name', 'painting')
+        ->with(['processes' => fn($query) => $query->where('status', 'in_progress')])->first();
+        return Inertia::render('Name/Worker/Workshop', [
+            'workshops' => $workshops
+        ]);
     }
 
     /**

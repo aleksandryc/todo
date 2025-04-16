@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Orders;
 use App\Http\Requests\StoreOrdersRequest;
 use App\Http\Requests\UpdateOrdersRequest;
+use Inertia\Inertia;
 
 class OrdersController extends Controller
 {
@@ -13,9 +14,20 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        //
+        $orders = Orders::with('tables', 'client')->get();
+
+        return Inertia::render('Name/Orders/Index', [
+            'order' => $orders,
+        ]);
     }
 
+    public function clientOrders()
+    {
+        $orders = Orders::query()
+        ->where('client_id', auth('id'))
+        ->with('tables')
+        ->get();
+    }
     /**
      * Show the form for creating a new resource.
      */

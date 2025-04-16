@@ -41,7 +41,7 @@ Route::middleware('auth')->group(function () {
     // Route for new app name
     // Admin routes
     Route::middleware('role:admin')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/name/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         //Route::resource('/name/orders', [OrdersController::class]);
         //Route::resource('/name/tables', [TablesController::class]);
         Route::get('/name/workshops', [WorkshopsController::class, 'index'])->name('workshops.index');

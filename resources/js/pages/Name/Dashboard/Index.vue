@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import Layout from '../Shared/Layout.vue'
+import Layout from '../../Shared/Layout.vue'
 
 defineOptions({ layout: Layout })
 </script>
