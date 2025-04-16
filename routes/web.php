@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController as AuthLoginController;
-use App\Http\Controllers\CarController;
+use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\TablesController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodosController;
 use App\Http\Controllers\UserControler;
+use App\Http\Controllers\WorkshopsController;
+use App\Http\Middleware\Role;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\User;
@@ -34,7 +37,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/{task}/update', [TaskController::class, 'update']);
     Route::post('/tasks/{task}/delete', [TaskController::class, 'destroy']);
 
-    Route::get('/car', [CarController::class, 'index'])->name('car');
+    // Route for new app name
+    // Admin routes
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/name/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        //Route::resource('/name/orders', [OrdersController::class]);
+        //Route::resource('/name/tables', [TablesController::class]);
+        Route::get('/name/workshops', [WorkshopsController::class, 'index'])->name('workshops.index');
+    });
+    // Routes for workers
+    Route::middleware('role:worker')->group(function () {
+        Route::get('/name/worker/workshop', [WorkshopsController::class, 'workerWorkshop'])->name('worker.workshop');
+    });
+
+    // Routes for client (access only to their orders)
+    Route::middleware('role:client')->group(function(){
+        Route::get('name/client/orders', [OrdersController::class]);
+    });
 });
 
 

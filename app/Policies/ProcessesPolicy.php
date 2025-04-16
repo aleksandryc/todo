@@ -2,10 +2,11 @@
 
 namespace App\Policies;
 
+use App\Models\Processes;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class UserPolicy
+class ProcessesPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -18,7 +19,7 @@ class UserPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, User $model): bool
+    public function view(User $user, Processes $processes): bool
     {
         return false;
     }
@@ -28,22 +29,21 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-
-        return $user->email === 'admin@admin.ca';
+        return false;
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user, Processes $processes): bool
     {
-        return (bool) mt_rand(0, 1);
+        return false;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): bool
+    public function delete(User $user, Processes $processes): bool
     {
         return false;
     }
@@ -51,7 +51,7 @@ class UserPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, User $model): bool
+    public function restore(User $user, Processes $processes): bool
     {
         return false;
     }
@@ -59,7 +59,7 @@ class UserPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, User $model): bool
+    public function forceDelete(User $user, Processes $processes): bool
     {
         return false;
     }
