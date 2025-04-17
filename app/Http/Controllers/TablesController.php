@@ -7,8 +7,8 @@ use App\Http\Requests\StoreTablesRequest;
 use App\Http\Requests\UpdateTablesRequest;
 use App\Models\Processes;
 use App\Models\Workshops;
-use Illuminate\Http\Request as HttpRequest;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request as FRequest;
 use Inertia\Inertia;
 
 class TablesController extends Controller
@@ -18,16 +18,25 @@ class TablesController extends Controller
      */
     public function index()
     {
-        $tables = Tables::query()
+        $filters = FRequest::only(['status', 'material', 'color']);
+
+        $query = Tables::query()
         ->with('order')
-        ->get();
+        ->when($filters['status'] ?? null, fn($query, $status) => $query->where('status', $status))
+        ->when($filters['material'] ?? null, fn($query, $material) => $query->where('material', $material))
+        ->when($filters['color'] ?? null, fn($query, $color) => $query->where('color', 'like', "%$color%"));
+
+
+        $tables = $query->paginate(10)->withQueryString();
+
 
         return Inertia::render('Name/Tables/Index', [
-            'tables' => $tables
+            'tables' => $tables,
+            'filters' => $filters,
         ]);
     }
 
-    public function udateStatus (HttpRequest $request, Tables $tables)
+    public function udateStatus (Request $request, Tables $tables)
     {
         $request->validate([
             'status' => 'required|in:pending,in_acceptance,in_painting,in_assembly,in_delivery,completed  '

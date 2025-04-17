@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/name/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/name/orders', [OrdersController::class, 'index']);
-        //Route::resource('/name/tables', [TablesController::class]);
+        Route::get('/name/tables', [TablesController::class, 'index']);
         //Route::get('/name/workshops', [WorkshopsController::class, 'index'])->name('workshops.index');
         //Route::post('name/tables/{table}/status', [TablesController::class,'updateStatus'])->name('tables.updateStatus');
     });
