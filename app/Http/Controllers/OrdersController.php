@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Orders;
 use App\Http\Requests\StoreOrdersRequest;
 use App\Http\Requests\UpdateOrdersRequest;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Request as FRequest;
 
 class OrdersController extends Controller
 {
@@ -14,19 +16,38 @@ class OrdersController extends Controller
      */
     public function index()
     {
-        $orders = Orders::with('tables', 'client')->get();
+
+        $filters = FRequest::only(['status', 'client', 'id']);
+
+        $query = Orders::query()
+        ->with(['client', 'tables'])
+        ->when($filters['status'] ?? null, fn($query, $status) => $query->where('status', $status))
+        ->when($filters['client'] ?? null, fn($query, $client) => $query->whereHas('client', fn($q) => $q->where('name', 'like', "%$client%")->orWhere('email', 'like', "%$client%")))
+        ->when($filters['id'] ?? null, fn($query, $id) => $query->where('id', $id));
+
+
+        $orders = $query->paginate(10)->withQueryString();
+
 
         return Inertia::render('Name/Orders/Index', [
-            'order' => $orders,
+            'orders' => $orders,
+            'filters' => $filters,
         ]);
     }
 
     public function clientOrders()
     {
+
         $orders = Orders::query()
         ->where('client_id', auth('id'))
         ->with('tables')
         ->get();
+
+
+        return Inertia::render('Name/Clients/', [
+            'orders' => $orders,
+
+        ]);
     }
     /**
      * Show the form for creating a new resource.
