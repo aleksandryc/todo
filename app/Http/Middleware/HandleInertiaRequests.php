@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => Auth::user() ? [
                 'user' => ['username' => Auth::user()?->name],
+                'role' => ['roles' => Auth::user()?->role],
             ] : null,
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
