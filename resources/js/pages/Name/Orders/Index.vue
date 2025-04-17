@@ -44,7 +44,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.client.name }} ({{ order.client.email }})</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.status }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">{{ order.tables.length }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">{{ new Date(order.create_at).toLocaleDateString() }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">{{ new Date(order.created_at).toDateString() }}</td>
                     </tr>
                 </tbody>
             </table>
