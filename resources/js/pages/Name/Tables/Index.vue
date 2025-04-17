@@ -18,7 +18,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-100">Status</label>
+                    <label class="block text-sm font-medium text-gray-100">Material</label>
                     <select v-model="filters.material" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
                         <option class="text-black" value="">All</option>
                         <option class="text-black" value="metal">Metal</option>
@@ -27,8 +27,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-100">Order ID</label>
-                    <input v-model="filters.color" @change="applyFilters" type="number" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Search by color">
+                    <label class="block text-sm font-medium text-gray-100">Color</label>
+                    <input v-model="filters.color" @input="applyFilters" type="text" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" placeholder="Search by color">
                 </div>
             </div>
          </div>
