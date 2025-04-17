@@ -21,9 +21,9 @@ class TablesFactory extends Factory
     {
         return [
             'name' => $this->faker->word.' table',
-            'color' => null,
+            'color' => $this->faker->colorName(),
             'material' => $this->faker->randomElement(['wood', 'metal', 'plastic']),
-            'status' => 'pending',
+            'status' => $this->faker->randomElement(['pending', 'in_acceptance', 'in_painting', 'in_assembly', 'in_delivery', 'completed']),
             'price' => $this->faker->randomFloat(2, 100, 1000),
             'orders_id' => Orders::factory(),
         ];
