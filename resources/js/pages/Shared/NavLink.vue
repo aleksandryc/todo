@@ -16,7 +16,7 @@
 
         <!-- Dropdown menu -->
         <div v-if="role"
-                class="absolute left-0 w-40 mt-1 origin-top-left bg-white divide-y divide-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200">
+                class="absolute left-0.5 w-40 origin-top-left bg-white divide-y divide-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200">
                 <div class="py-1">
                     <!-- Admin Options -->
                     <template v-if="role === 'admin'">

@@ -7,8 +7,9 @@
                     <div
                         v-if="link.url === null"
                         :key="key"
-                        class=" mr-1 rounded border px-4 py-3 text-sm leading-4 text-gray-400"
+                        class=" mr-1 rounded border px-4 py-3 text-xs leading-4 text-gray-400"
                         v-html="link.label"
+                        :class="{ 'hidden': link.label === '...' }"
                     />
                     <Link
                         v-else
