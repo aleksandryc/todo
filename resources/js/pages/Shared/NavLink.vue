@@ -15,14 +15,29 @@
         </button>
 
         <!-- Dropdown menu -->
-        <div v-if="role === 'admin'"
-            class="absolute left-0 w-40 mt-1 origin-top-left bg-white divide-y divide-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-300">
-            <div class="py-1">
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Option 1</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Option 2</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Option 3</a>
+        <div v-if="role"
+                class="absolute left-0 w-40 mt-1 origin-top-left bg-white divide-y divide-gray-100 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200">
+                <div class="py-1">
+                    <!-- Admin Options -->
+                    <template v-if="role === 'admin'">
+                        <Link href="/name/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</Link>
+                        <Link href="/name/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</Link>
+                        <Link href="/name/tables" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Tables</Link>
+                    </template>
+
+                    <!-- Worker Options -->
+                    <template v-else-if="role === 'worker'">
+                        <a href="/worker/tasks" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tasks</a>
+                        <a href="/worker/reports" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Reports</a>
+                    </template>
+
+                    <!-- Client Options -->
+                    <template v-else-if="role === 'client'">
+                        <a href="/client/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Orders</a>
+                        <a href="/client/support" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Support</a>
+                    </template>
+                </div>
             </div>
-        </div>
     </div>
 </div>
 
