@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Workshops;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Nette\Utils\Random;
 
 class DatabaseSeeder extends Seeder
 {
@@ -54,26 +55,12 @@ class DatabaseSeeder extends Seeder
             'name' => 'delivery',
         ]);
 
-        // Create orders
+        // Create orders and processes
         Orders::factory()->count(5)->hasTables(2)->create();
-
-        // Create processes for tables
-        $workshops = Workshops::all(); // Retrieve all workshops
-
-        Tables::all()->each(function ($table) use ($workshops) {
-            $status = $table->status; // Get status for table
-            $workshop = match ($status) {
-                'in_acceptance' => $workshops[0],
-                'in_painting' => $workshops[1],
-                'in_assembly' => $workshops[2],
-                'in_delivery' => $workshops[3],
-                default => $workshops[0],
-            };
-
+        Tables::all()->each(function ($table) {
             Processes::factory()->create([
                 'table_id' => $table->id,
-                'workshops_id' => $workshop->id,
-                'status' => 'in_progress',
+                'workshops_id' => Workshops::query()->pluck('id')->random(),
             ]);
         });
     }
