@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Tables;
 use App\Http\Requests\StoreTablesRequest;
 use App\Http\Requests\UpdateTablesRequest;
+use App\Models\Processes;
+use App\Models\Workshops;
+use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
 class TablesController extends Controller
@@ -23,6 +27,54 @@ class TablesController extends Controller
         ]);
     }
 
+    public function udateStatus (HttpRequest $request, Tables $tables)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,in_acceptance,in_painting,in_assembly,in_delivery,completed  '
+        ]);
+
+        $newStaatus = $request->status;
+
+        // Define workshop based on status
+        $workshopName = match ($newStaatus) {
+            'in_acceptance' => 'acceptance',
+            'in_painting' => 'painting',
+            'in_assembly' => 'assembly',
+            'in_delivery' => 'delivery',
+            default => null,
+        };
+
+        // Update table status
+        $tables->update(['status' => $newStaatus]);
+
+        if ($workshopName) {
+            //Finished actual process
+            Processes::query()
+            ->where('tables_id', $tables->id)
+            ->where('status', 'in_progress')
+            ->update(['status' => 'completed']);
+
+            // Check the limits
+            $workshop = Workshops::query()->where('name', $workshopName)->first();
+            $activeProcesses = Processes::query()
+            ->where('workshops_id', $workshop->id)
+            ->where('status', 'in_progress')
+            ->count();
+
+            if ($activeProcesses >= 3) {
+                return back()->withErrors(['status' => 'Workshop ' . $workshopName . 'allready have maximum tables in work']);
+            }
+
+            // Create new process
+            Processes::query()
+            ->create([
+                'tables_id' => $tables->id,
+                'workshops_id' => $workshop->id,
+                'status' => 'in_progress',
+            ]);
+        }
+        return redirect()->route('dashboard')->with('success', 'Table status updated');
+    }
     /**
      * Show the form for creating a new resource.
      */

@@ -54,12 +54,26 @@ class DatabaseSeeder extends Seeder
             'name' => 'delivery',
         ]);
 
-        // Create orders and processes
+        // Create orders
         Orders::factory()->count(5)->hasTables(2)->create();
-        Tables::all()->each(function ($table) {
+
+        // Create processes for tables
+        $workshops = Workshops::all(); // Retrieve all workshops
+
+        Tables::all()->each(function ($table) use ($workshops) {
+            $status = $table->status; // Get status for table
+            $workshop = match ($status) {
+                'in_acceptance' => $workshops[0],
+                'in_painting' => $workshops[1],
+                'in_assembly' => $workshops[2],
+                'in_delivery' => $workshops[3],
+                default => $workshops[0],
+            };
+
             Processes::factory()->create([
                 'table_id' => $table->id,
-                'workshops_id' => Workshops::where('name', 'acceptance')->first()->id,
+                'workshops_id' => $workshop->id,
+                'status' => 'in_progress',
             ]);
         });
     }

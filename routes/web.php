@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
         //Route::resource('/name/orders', [OrdersController::class]);
         //Route::resource('/name/tables', [TablesController::class]);
         Route::get('/name/workshops', [WorkshopsController::class, 'index'])->name('workshops.index');
+        Route::post('name/tables/{table}/status', [TablesController::class,'updateStatus'])->name('tables.updateStatus');
     });
     // Routes for workers
     Route::middleware('role:worker')->group(function () {
