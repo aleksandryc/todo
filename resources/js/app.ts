@@ -9,8 +9,8 @@ import { initializeTheme } from './composables/useAppearance';
 createInertiaApp({
     title: (title) => `${title} - My App`,
     resolve: name => {
-        const pages = import.meta.glob('./Pages/**/*.vue', { eager: true });
-        const page = pages[`./Pages/${name}.vue`] as { default: any };
+        const pages = import.meta.glob('./pages/**/*.vue', { eager: true });
+        const page = pages[`./pages/${name}.vue`] as { default: any };
         if (page.default.layout === undefined) {
             page.default.layout = Layout;
         }
