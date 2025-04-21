@@ -7,7 +7,7 @@
                     <div
                         v-if="link.url === null"
                         :key="key"
-                        class=" mr-1 rounded border px-4 py-3 text-xs leading-4 text-gray-400"
+                        class=" mr-1 rounded border px-1 py-3 text-xs leading-4 text-gray-400"
                         v-html="link.label"
                         :class="{ 'hidden': link.label === '...' }"
                     />
@@ -15,7 +15,7 @@
                         v-else
                         :key="`link-${key}`"
                         class=" mr-1 rounded border px-4 py-3 text-sm leading-4 hover:bg-slate-800 hover:shadow-md hover:shadow-blue-400 focus:border-indigo-500 focus:text-indigo-500"
-                        :class="{ 'bg-amber-50 ml-4 mr-4': link.active }"
+                        :class="{ 'bg-amber-50': link.active }"
                         :href="link.url"
                         v-html="link.label"
                     />
