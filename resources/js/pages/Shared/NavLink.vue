@@ -27,8 +27,8 @@
 
                     <!-- Worker Options -->
                     <template v-else-if="role === 'worker'">
-                        <a href="/worker/tasks" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Tasks</a>
-                        <a href="/worker/reports" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Reports</a>
+                        <a href="/name/worker/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Workshop</a>
+
                     </template>
 
                     <!-- Client Options -->

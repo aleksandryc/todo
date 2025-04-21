@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     });
     // Routes for workers
     Route::middleware('role:worker')->group(function () {
-        Route::get('/name/worker/workshop', [WorkshopsController::class, 'workerWorkshop'])->name('worker.workshop');
+        Route::get('/name/worker', [WorkshopsController::class, 'workerWorkshop'])->name('worker.workshop');
     });
 
     // Routes for client (access only to their orders)
