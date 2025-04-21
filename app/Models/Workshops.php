@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Workshops extends Model
 {
@@ -18,5 +19,10 @@ class Workshops extends Model
     public function processes()
     {
         return $this->hasMany(Processes::class);
+    }
+
+    public function user()
+    {
+        return $thois->BelongsTo(User::class);
     }
 }

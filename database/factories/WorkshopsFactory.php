@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use App\Models\Workshops;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,6 +22,7 @@ class WorkshopsFactory extends Factory
         return [
             'name' => $this->faker->randomElement(['acceptance', 'painting', 'assembly', 'delivery']),
             'max_tables' => 3,
+            'user_id' => User::factory()->state(['role' => 'worker']),
         ];
     }
 }
