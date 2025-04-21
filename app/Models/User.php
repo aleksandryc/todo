@@ -57,6 +57,11 @@ class User extends Authenticatable
         return $this->hasMany(Orders::class, 'client_id');
     }
 
+    public function workshops()
+    {
+        return $this->belongsToMany(Workshops::class);
+    }
+
     public function isAdmin()
     {
         return $this->role === 'admin';

@@ -14,6 +14,7 @@ class Workshops extends Model
     protected $fillable = [
         'name',
         'max_tables',
+        'user_id',
     ];
 
     public function processes()
@@ -23,6 +24,6 @@ class Workshops extends Model
 
     public function user()
     {
-        return $thois->BelongsTo(User::class);
+        return $this->BelongsTo(User::class);
     }
 }

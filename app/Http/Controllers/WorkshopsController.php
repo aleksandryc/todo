@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Workshops;
 use App\Http\Requests\StoreWorkshopsRequest;
 use App\Http\Requests\UpdateWorkshopsRequest;
+use App\Models\Processes;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class WorkshopsController extends Controller
@@ -14,21 +16,66 @@ class WorkshopsController extends Controller
      */
     public function index()
     {
-        $workshops = Workshops::query()
-        ->with(['processes' => fn($query) => $query->where('status', 'in_progress')])->get();
-        return Inertia::render('Name/Workshops/Index', [
-            'workshops' => $workshops
-        ]);
+        //
     }
 
-    public function workerWorkshop()
+    public function workerWorkshop(Request $request)
     {
-        // Need aditional logic
-        $workshops = Workshops::query()
-        ->where('name', 'painting')
-        ->with(['processes' => fn($query) => $query->where('status', 'in_progress')])->first();
+        $user= $request->user();
+        try {
+            $workshops = Workshops::query()
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+
+            abort(404, 'Workshop not found');
+        }
+        $processes = Processes::query()
+            ->where('workshops_id', $workshops->id)
+            ->where('status', 'in_progress')
+            ->with(['tables' => fn($query) => $query->select('id', 'name', 'status', 'orders_id')])
+            ->get()
+            ->map(fn($process) => [
+                'id' =>$process->id,
+                'table' => [
+                    'id' => $process->tables->id,
+                    'name' => $process->tables->name,
+                    'status' => $process->tables->status,
+                    'orders_id' => $process->tables->orders_id,
+                ],
+                'status' => $process->status,
+                ])
+                ->filter()
+                ->values()
+                ->sortBy(function ($process) {
+
+                    $statusorder = [
+                        'in_acceptance' => 1,
+                        'in_painting'=> 2,
+                        'in_assembly' => 3,
+                        'in_delivery' => 4,
+                        'completed' => 5,
+                        'pending' => 6,
+                    ];
+                    return $statusorder[$process['table']['status']] ?? 7;
+                }
+                )
+                ->values();
+
+        $activeProcessCount = $processes->count();
+        $maxProcesses = 3;
+
         return Inertia::render('Name/Worker/Workshop', [
-            'workshops' => $workshops
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->role,
+            ],
+            'processLimit' => [
+                'current' => $activeProcessCount,
+                'max' => $maxProcesses,
+            ],
+            'processes' => $processes,
         ]);
     }
 
