@@ -62,7 +62,7 @@ const filterdProcesses = computed(() => {
     return props.processes?.filter((process: any) => process.table?.status === statusFilter.value);
 });
 
-const completeProcess = (processId) => {
+/* const completeProcess = (processId) => {
     router.post(route('worker.process.complete', processId),{}, {
         onSuccess: () => {
             statusFilter.value = '';
@@ -71,6 +71,9 @@ const completeProcess = (processId) => {
             console.error('Error completing process:', errors);
         },
     });
+}; */
+const completeProcess = (processId) => {
+            router.post(route('worker.process.complete', processId));
 };
 </script>
 

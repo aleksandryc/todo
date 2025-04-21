@@ -50,12 +50,12 @@ class WorkshopsController extends Controller
                 ->sortBy(function ($process) {
 
                     $statusorder = [
-                        'in_acceptance' => 1,
-                        'in_painting'=> 2,
-                        'in_assembly' => 3,
-                        'in_delivery' => 4,
-                        'completed' => 5,
-                        'pending' => 6,
+                        'pending' => 1,
+                        'in_acceptance' => 2,
+                        'in_painting'=> 3,
+                        'in_assembly' => 4,
+                        'in_delivery' => 5,
+                        'completed' => 6,
                     ];
                     return $statusorder[$process['table']['status']] ?? 7;
                 }
@@ -81,7 +81,13 @@ class WorkshopsController extends Controller
 
     public function completeProcess(Request $request, $processId)
     {
-        $user = $request->user();
+        $user = $request->user()->id;
+        $process = Processes::query()->findOrFail($processId);
+        $workshops = Workshops::query()->where('user_id', $user)->firstOrFail();
+        $process->tables->update(['status', 'in_assembly']);
+        $process = Processes::query()->findOrFail($processId);
+        dd($process->tables->status, $workshops);
+        /* $user = $request->user();
         if (!$user) {
             abort(403, 'User not authorize');
         }
@@ -99,8 +105,11 @@ class WorkshopsController extends Controller
         }
 
         $process->update(['status' => 'completed']);
+        $process->save();
+
         $tables = $process->tables;
         $nextStatus = match ($tables->status) {
+            'pending' => 'in_acceptance',
             'in_acceptance' => 'in_painting',
             'in_painting' => 'in_assembly',
             'in_assembly' => 'in_delivery',
@@ -109,7 +118,7 @@ class WorkshopsController extends Controller
         };
         $tables->update(['status' => $nextStatus]);
 
-        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully');
+        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully'); */
     }
     /**
      * Show the form for creating a new resource.
