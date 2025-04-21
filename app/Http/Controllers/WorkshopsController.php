@@ -79,6 +79,38 @@ class WorkshopsController extends Controller
         ]);
     }
 
+    public function completeProcess(Request $request, $processId)
+    {
+        $user = $request->user();
+        if (!$user) {
+            abort(403, 'User not authorize');
+        }
+        try {
+            $workshops = Workshops::query()->where('user_id', $user->id)->firstOrFail();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            abort(404, 'Workshop not found');
+        }
+        $process = Processes::query()->findOrFail($processId);
+        if($process->workshops_id !== $workshops->id){
+            abort(403, 'Not authorize');
+        }
+        if(!$process->tables){
+            abort(404, "Tables not found");
+        }
+
+        $process->update(['status' => 'completed']);
+        $tables = $process->tables;
+        $nextStatus = match ($tables->status) {
+            'in_acceptance' => 'in_painting',
+            'in_painting' => 'in_assembly',
+            'in_assembly' => 'in_delivery',
+            'in_delivery' => 'completed',
+            default => $tables->status,
+        };
+        $tables->update(['status' => $nextStatus]);
+
+        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully');
+    }
     /**
      * Show the form for creating a new resource.
      */
