@@ -24,11 +24,7 @@
         "prettier-plugin-tailwindcss": "^0.6.9",
         "typescript-eslint": "^8.23.0",
         "unplugin-vue-define-options": "^3.0.0-beta.7",
-<<<<<<< HEAD
-        "vite": "^6.3.1",
-=======
         "vite": "^6.3.2",
->>>>>>> d94d5b6 (no comment)
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
