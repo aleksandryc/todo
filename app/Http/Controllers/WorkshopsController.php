@@ -21,18 +21,17 @@ class WorkshopsController extends Controller
 
     public function workerWorkshop(Request $request)
     {
-        $user= $request->user();
+        $user = $request->user();
         $workshops = Workshops::query()
-                ->where('user_id', $user->id)
-                ->firstOrFail();
-
+            ->where('user_id', $user->id)
+            ->firstOrFail();
         $processes = Processes::query()
             ->where('workshops_id', $workshops->id)
             ->where('status', 'in_progress')
             ->with(['tables' => fn($query) => $query->select('id', 'name', 'status', 'orders_id')])
             ->get()
             ->map(fn($process) => [
-                'id' =>$process->id,
+                'id' => $process->id,
                 'table' => [
                     'id' => $process->tables->id,
                     'name' => $process->tables->name,
@@ -40,27 +39,27 @@ class WorkshopsController extends Controller
                     'orders_id' => $process->tables->orders_id,
                 ],
                 'status' => $process->status,
-                ])
-                ->filter()
-                ->values()
-                ->sortBy(function ($process) {
-
+            ])
+            ->filter()
+            ->values()
+            ->sortBy(
+                function ($process) {
                     $statusorder = [
                         'pending' => 1,
                         'in_acceptance' => 2,
-                        'in_painting'=> 3,
+                        'in_painting' => 3,
                         'in_assembly' => 4,
                         'in_delivery' => 5,
                         'completed' => 6,
                     ];
                     return $statusorder[$process['table']['status']] ?? 7;
                 }
-                )
-                ->values();
-
+            )
+            ->values();
         $activeProcessCount = $processes->count();
         $maxProcesses = 3;
-
+        $listOfShops = Workshops::query()
+            ->where('user_id', $user->id)->get();
         return Inertia::render('Name/Worker/Workshop', [
             'user' => [
                 'id' => $user->id,
@@ -72,7 +71,7 @@ class WorkshopsController extends Controller
                 'max' => $maxProcesses,
             ],
             'processes' => $processes,
-            'workshop' => $workshops->name,
+            'workshop' => $listOfShops,
         ]);
     }
 
@@ -88,10 +87,10 @@ class WorkshopsController extends Controller
             abort(404, 'Workshop not found');
         }
         $process = Processes::query()->findOrFail($processId);
-        if($process->workshops_id !== $workshops->id){
+        if ($process->workshops_id !== $workshops->id) {
             abort(403, 'Not authorize');
         }
-        if(!$process->tables){
+        if (!$process->tables) {
             abort(404, "Tables not found");
         }
 

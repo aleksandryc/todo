@@ -1,7 +1,12 @@
 <template>
     <AppHead title="Wrokers page" />
     <div class="mb-4 mt-3 text-center">
-        <p>Workshop <strong>{{ props.workshop }}</strong> has active processes: {{ processLimit?.current }} / {{ processLimit?.max }}</p>
+        <div>
+            <ul v-for="shop in props.workshop" :key="shop.id">
+                <li>{{ shop.name }}</li>
+            </ul>
+        </div>
+        <p>has active processes: {{ processLimit?.current }} / {{ processLimit?.max }}</p>
         <span v-if="processLimit?.current >= processLimit?.max" class="text-red-800 ml-4 shadow-xs shadow-red-50 bg-slate-200 font-bold" >  Workshop is at full capacity!</span>
     </div>
     <div class="mb-4">
