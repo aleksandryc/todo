@@ -14,9 +14,32 @@ class WorkshopsController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $user = $request->user();
+        $workshops = Workshops::with(['processes.tables'])
+            ->where('user_id', $user->id)
+            ->get();
+
+        $data = $workshops->map(function($workshop) {
+            return [
+                'workshop_name' => $workshop->name,
+                'processes' => $workshop->processes->map(function ($process) {
+                    return [
+                        'process_status' => $process->status,
+                        'tables' => $process->tables->map(function($table){
+                            return [
+                                'table_name' => $table->name,
+                                'table_status' => $table->status
+                            ];
+                        })
+                    ];
+                })
+            ];
+        });
+        return Inertia::render('Name/Worker/Index', [
+            'workshops' => $data,
+        ]);
     }
 
     public function workerWorkshop(Request $request)
@@ -60,6 +83,7 @@ class WorkshopsController extends Controller
         $maxProcesses = 3;
         $listOfShops = Workshops::query()
             ->where('user_id', $user->id)->get();
+
         return Inertia::render('Name/Worker/Workshop', [
             'user' => [
                 'id' => $user->id,
