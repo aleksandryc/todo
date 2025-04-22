@@ -22,14 +22,12 @@ class WorkshopsController extends Controller
     public function workerWorkshop(Request $request)
     {
         $user= $request->user();
-        try {
-            $workshops = Workshops::query()
+
+        $workshops = Workshops::query()
                 ->where('user_id', $user->id)
                 ->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
 
-            abort(404, 'Workshop not found');
-        }
+
         $processes = Processes::query()
             ->where('workshops_id', $workshops->id)
             ->where('status', 'in_progress')
@@ -81,13 +79,12 @@ class WorkshopsController extends Controller
 
     public function completeProcess(Request $request, $processId)
     {
-        $user = $request->user()->id;
+        $user = $request->user();
+        $workshops = Workshops::query()->where('user_id', $user->id)->firstOrFail();
         $process = Processes::query()->findOrFail($processId);
-        $workshops = Workshops::query()->where('user_id', $user)->firstOrFail();
-        $process->tables->update(['status', 'in_assembly']);
-        $process = Processes::query()->findOrFail($processId);
-        dd($process->tables->status, $workshops);
-        /* $user = $request->user();
+        $process->update(['status' => 'completed']);
+        dd($process);
+        $user = $request->user();
         if (!$user) {
             abort(403, 'User not authorize');
         }
@@ -105,7 +102,6 @@ class WorkshopsController extends Controller
         }
 
         $process->update(['status' => 'completed']);
-        $process->save();
 
         $tables = $process->tables;
         $nextStatus = match ($tables->status) {
@@ -118,7 +114,7 @@ class WorkshopsController extends Controller
         };
         $tables->update(['status' => $nextStatus]);
 
-        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully'); */
+        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully');
     }
     /**
      * Show the form for creating a new resource.

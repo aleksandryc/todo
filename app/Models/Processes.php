@@ -10,7 +10,7 @@ class Processes extends Model
     /** @use HasFactory<\Database\Factories\ProcessesFactory> */
     use HasFactory;
 
-    protected $fiillable = [
+    protected $fillable = [
         'table_id',
         'workshops_id',
         'status',

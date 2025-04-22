@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create orders and processes
-        Orders::factory()->count(50)->hasTables(2)->create();
+        Orders::factory()->count(10)->hasTables(2)->create();
         Tables::all()->each(function ($table) {
             Processes::factory()->create([
                 'table_id' => $table->id,
