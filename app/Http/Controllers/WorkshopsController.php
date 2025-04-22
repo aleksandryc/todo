@@ -80,11 +80,6 @@ class WorkshopsController extends Controller
     public function completeProcess(Request $request, $processId)
     {
         $user = $request->user();
-        $workshops = Workshops::query()->where('user_id', $user->id)->firstOrFail();
-        $process = Processes::query()->findOrFail($processId);
-        $process->update(['status' => 'completed']);
-        dd($process);
-        $user = $request->user();
         if (!$user) {
             abort(403, 'User not authorize');
         }
