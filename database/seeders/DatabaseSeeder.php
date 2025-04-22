@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(100)->create();
+        User::factory(15)->create();
 
         // Create an admin user
         User::factory()->create([
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create a worker
-        User::factory()->create([
+        $worker = User::factory()->create([
             'name' => 'Worker User',
             'email' => 'worker@example.com',
             'role' => 'worker',
@@ -42,19 +42,22 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create workshops
+        $workshops = [
         Workshops::factory()->create([
             'name' => 'acceptance',
-        ]);
+        ]),
         Workshops::factory()->create([
             'name' => 'painting',
-        ]);
+        ]),
         Workshops::factory()->create([
             'name' => 'assembly',
-        ]);
+        ]),
         Workshops::factory()->create([
             'name' => 'delivery',
-        ]);
+        ]),
+        ];
 
+        $worker->workshops()->attach($workshops);
         // Create orders and processes
         Orders::factory()->count(10)->hasTables(2)->create();
         Tables::all()->each(function ($table) {

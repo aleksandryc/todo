@@ -19,10 +19,16 @@ class WorkshopsFactory extends Factory
      */
     public function definition(): array
     {
+        // Retrieve or create a single worker
+        $worker = User::firstOrCreate(
+            ['role' => 'worker'],
+            ['name' => 'Default Worker', 'email' => 'worker@example.com', 'password' => bcrypt('password')]
+        );
+
         return [
             'name' => $this->faker->randomElement(['acceptance', 'painting', 'assembly', 'delivery']),
             'max_tables' => 3,
-            'user_id' => User::factory()->state(['role' => 'worker']),
+            'user_id' => $worker->id,
         ];
     }
 }

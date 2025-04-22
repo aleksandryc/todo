@@ -15,21 +15,21 @@ class WorkshopsSeeder extends Seeder
      */
     public function run(): void
     {
-      /*   // Find a worker
-        $worker = User::query()->where('role', 'worker')->first();
+        // Retrieve or create a single worker
+        $worker = User::firstOrCreate(
+            ['role' => 'worker'],
+            ['name' => 'Worker Name', 'email' => 'worker@example.com', 'password' => bcrypt('password')]
+        );
 
-        if(!$worker) {
-            throw new \Exception('Worker user not found, create worker first');
+        // Create workshops and associate them with the worker
+        $workshops = ['acceptance', 'painting', 'assembly', 'delivery'];
+
+        foreach ($workshops as $workshopName) {
+            Workshops::create([
+                'name' => $workshopName,
+                'max_tables' => 3,
+                'user_id' => $worker->id,
+            ]);
         }
-
-        // Create workshop for worker
-        Workshops::query()->create([
-            'name' => 'Painting workshop',
-            'user_id'  => $worker->id,
-        ]);
-        Workshops::query()->create([
-            'name' => 'Assembly workshop',
-            'user_id'  => $worker->id,
-        ]); */
     }
 }

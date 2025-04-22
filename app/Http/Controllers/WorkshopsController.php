@@ -22,11 +22,9 @@ class WorkshopsController extends Controller
     public function workerWorkshop(Request $request)
     {
         $user= $request->user();
-
         $workshops = Workshops::query()
                 ->where('user_id', $user->id)
                 ->firstOrFail();
-
 
         $processes = Processes::query()
             ->where('workshops_id', $workshops->id)
@@ -74,6 +72,7 @@ class WorkshopsController extends Controller
                 'max' => $maxProcesses,
             ],
             'processes' => $processes,
+            'workshop' => $workshops->name,
         ]);
     }
 

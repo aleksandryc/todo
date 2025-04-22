@@ -1,7 +1,7 @@
 <template>
     <AppHead title="Wrokers page" />
     <div class="mb-4 mt-3 text-center">
-        Active processes: {{ processLimit?.current }} / {{ processLimit?.max }}
+        <p>Workshop <strong>{{ props.workshop }}</strong> has active processes: {{ processLimit?.current }} / {{ processLimit?.max }}</p>
         <span v-if="processLimit?.current >= processLimit?.max" class="text-red-800 ml-4 shadow-xs shadow-red-50 bg-slate-200 font-bold" >  Workshop is at full capacity!</span>
     </div>
     <div class="mb-4">
@@ -54,6 +54,7 @@ import { router } from '@inertiajs/vue3';
 const props = defineProps ({
     processLimit: Object,
     processes: Array,
+    workshop: Object
 });
 
 const statusFilter = ref('');
