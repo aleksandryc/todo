@@ -63,7 +63,8 @@ class DatabaseSeeder extends Seeder
         Tables::all()->each(function ($table) {
             Processes::factory()->create([
                 'table_id' => $table->id,
-                'workshops_id' => Workshops::query()->pluck('id')->random(),
+                'workshops_id' => 1,
+                'status' => 'in_progress',
             ]);
         });
     }

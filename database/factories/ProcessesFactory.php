@@ -23,7 +23,7 @@ class ProcessesFactory extends Factory
         return [
             'table_id' => Tables::factory(),
             'workshops_id' => $this->faker->randomDigit(1, 4),
-            'status' => $this->faker->randomElement(['in_progress', 'completed']),
+            'status' => 'in_progress',
         ];
     }
 }

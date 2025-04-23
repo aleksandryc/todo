@@ -20,10 +20,10 @@ class TablesFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->word.' table',
+            'name' => $this->faker->city().' table',
             'color' => $this->faker->colorName(),
             'material' => $this->faker->randomElement(['wood', 'metal', 'plastic']),
-            'status' => $this->faker->randomElement(['pending', 'in_acceptance', 'in_painting', 'in_assembly', 'in_delivery', 'completed']),
+            'status' => 'pending',
             'price' => $this->faker->randomFloat(2, 100, 1000),
             'orders_id' => Orders::factory(),
         ];
