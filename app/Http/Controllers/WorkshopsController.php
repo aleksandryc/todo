@@ -17,10 +17,11 @@ class WorkshopsController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $workshops = Workshops::with(['processes.tables'])
+        $workshops = Workshops::query()
+            ->with(['processes.tables'])
             ->where('user_id', $user->id)
             ->get();
-
+        $worksopsName = $workshops->pluck('name');
         $data = $workshops->map(function($workshop) {
             return [
                 'workshop_name' => $workshop->name,
@@ -33,7 +34,7 @@ class WorkshopsController extends Controller
             ];
         });
         return Inertia::render('Name/Worker/Index', [
-            'workshops' => $data,
+            'workshops' =>  $data,
         ]);
     }
 
