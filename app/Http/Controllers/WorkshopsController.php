@@ -22,11 +22,11 @@ class WorkshopsController extends Controller
             ->with(['processes.tables'])
             ->where('user_id', $user->id)
             ->get();
-        $worksopsName = $workshops->pluck('name');
+        
         $data = $workshops->map(function ($workshop) {
             return [
                 'workshop_name' => $workshop->name,
-                'processes' => $workshop->processes->map(function ($process) {
+                'processes' => $workshop->processes->where('status', '!=','completed')->map(function ($process) {
                     return [
                         'process_status' => $process->status,
                         'tables' => $process->tables
@@ -103,24 +103,32 @@ class WorkshopsController extends Controller
             abort(403, 'User not authorize');
         }
 
-        $tables = Processes::query()->with('Tables')->where('table_id', $processId)->findOrFail($processId);
+        $tables = Processes::query()->with('Tables')->where('table_id', $processId)->get();
+        foreach ($tables as $table) {
 
-        $nextWorkshop = match ($tables->workshops_id) {
-            1 => 2,
-            2 => 3,
-            3 => 4,
-            //default => $tables->select('workshops_id')
-        };
-        $tables->update(['workshops_id', $nextWorkshop]);
-        $nextStatus = match ($tables->tables->status) {
-            'in_acceptance' => 'in_painting',
-            'in_painting' => 'in_assembly',
-            'in_assembly' => 'in_delivery',
-            'in_delivery' => 'completed',
-            //default => $tables->status,
-        };
+            if ($table->workshops_id === 4 && $table->tables->status === 'in_delivery') {
+                $table->update(['status' => 'completed']);
+                $table->tables->update(['status' => 'completed']);
+            } else {
 
-        $tables->tables->update(['status', $nextStatus]);
+                $nextWorkshop = match ($table->workshops_id) {
+                    1 => 2,
+                    2 => 3,
+                    3 => 4,
+                    default => $table->select('workshops_id')
+                };
+                $nextStatus = match ($table->tables->status) {
+                    'in_acceptance' => 'in_painting',
+                    'in_painting' => 'in_assembly',
+                    'in_assembly' => 'in_delivery',
+                    'in_delivery' => 'completed',
+                    default => $table->tables->status,
+                };
+
+                $table->tables->update(['status' => $nextStatus]);
+                $table->update(['workshops_id' => $nextWorkshop]);
+            }
+        };
 
         return redirect()->route('worker.index')->with('message', 'Process completed successfully');
     }

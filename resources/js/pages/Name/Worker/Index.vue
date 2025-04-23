@@ -1,7 +1,7 @@
 <template>
     <AppHead title="Wrokers page" />
     <div class="container mx-auto" v-if="props.workshops">
-        <div class="flex justify-between mx-auto px-2">
+        <div class="flex justify-between mx-auto text-xs px-2">
             <div v-for="shop in props.workshops" :key="shop.id">
                 <p class="text-center mb-2">{{ shop.workshop_name }}</p>
                 <div
@@ -28,7 +28,7 @@ const props = defineProps({
 });
 
 const submit = (processId) => {
-    router.post(route('worker.process.complete', processId));
+    router.put(route('worker.process.complete', processId));
 };
 </script>
 
