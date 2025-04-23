@@ -56,7 +56,6 @@ Route::middleware('auth')->group(function () {
     // Routes for workers
     Route::middleware('role:worker')->group(function () {
         Route::get('/name/worker/', [WorkshopsController::class, 'index'])->name('worker.index');
-        //Route::get('/name/worker/', [WorkshopsController::class, 'workerWorkshop'])->name('worker.workshop');
         Route::put('/name/worker/{processId}', [WorkshopsController::class, 'completeProcess'])->name('worker.process.complete');
     });
 

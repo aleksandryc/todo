@@ -22,7 +22,7 @@ class WorkshopsController extends Controller
             ->with(['processes.tables'])
             ->where('user_id', $user->id)
             ->get();
-        
+
         $data = $workshops->map(function ($workshop) {
             return [
                 'workshop_name' => $workshop->name,
@@ -36,63 +36,6 @@ class WorkshopsController extends Controller
         });
         return Inertia::render('Name/Worker/Index', [
             'workshops' =>  $data,
-        ]);
-    }
-
-    public function workerWorkshop(Request $request)
-    {
-        $user = $request->user();
-        $workshops = Workshops::query()
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-        $processes = Processes::query()
-            ->where('workshops_id', $workshops->id)
-            ->where('status', 'in_progress')
-            ->with(['tables' => fn($query) => $query->select('id', 'name', 'status', 'orders_id')])
-            ->get()
-            ->map(fn($process) => [
-                'id' => $process->id,
-                'table' => [
-                    'id' => $process->tables->id,
-                    'name' => $process->tables->name,
-                    'status' => $process->tables->status,
-                    'orders_id' => $process->tables->orders_id,
-                ],
-                'status' => $process->status,
-            ])
-            ->filter()
-            ->values()
-            ->sortBy(
-                function ($process) {
-                    $statusorder = [
-                        'pending' => 1,
-                        'in_acceptance' => 2,
-                        'in_painting' => 3,
-                        'in_assembly' => 4,
-                        'in_delivery' => 5,
-                        'completed' => 6,
-                    ];
-                    return $statusorder[$process['table']['status']] ?? 7;
-                }
-            )
-            ->values();
-        $activeProcessCount = $processes->count();
-        $maxProcesses = 3;
-        $listOfShops = Workshops::query()
-            ->where('user_id', $user->id)->get();
-
-        return Inertia::render('Name/Worker/Workshop', [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'role' => $user->role,
-            ],
-            'processLimit' => [
-                'current' => $activeProcessCount,
-                'max' => $maxProcesses,
-            ],
-            'processes' => $processes,
-            'workshop' => $listOfShops,
         ]);
     }
 
