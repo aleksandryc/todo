@@ -27,12 +27,7 @@ class WorkshopsController extends Controller
                 'processes' => $workshop->processes->map(function ($process) {
                     return [
                         'process_status' => $process->status,
-                        'tables' => $process->tables->map(function($table){
-                            return [
-                                'table_name' => $table->name,
-                                'table_status' => $table->status
-                            ];
-                        })
+                        'tables' => $process->tables
                     ];
                 })
             ];
