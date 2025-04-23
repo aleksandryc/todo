@@ -103,21 +103,26 @@ class WorkshopsController extends Controller
             abort(403, 'User not authorize');
         }
 
-        $tables = Tables::query()->where('id', $processId)->get();
+        $tables = Processes::query()->with('Tables')->where('table_id', $processId)->findOrFail($processId);
 
-        $nextStatus = match ($tables->status) {
+        $nextWorkshop = match ($tables->workshops_id) {
+            1 => 2,
+            2 => 3,
+            3 => 4,
+            //default => $tables->select('workshops_id')
+        };
+        $tables->update(['workshops_id', $nextWorkshop]);
+        $nextStatus = match ($tables->tables->status) {
             'in_acceptance' => 'in_painting',
             'in_painting' => 'in_assembly',
             'in_assembly' => 'in_delivery',
             'in_delivery' => 'completed',
-            default => $tables->status,
+            //default => $tables->status,
         };
 
-        foreach ($tables as $model) {
-            $model->update(['status' => $nextStatus]);
-        };
+        $tables->tables->update(['status', $nextStatus]);
 
-        return redirect()->route('worker.workshop')->with('message', 'Process completed successfully');
+        return redirect()->route('worker.index')->with('message', 'Process completed successfully');
     }
     /**
      * Show the form for creating a new resource.
