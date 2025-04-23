@@ -8,10 +8,10 @@
                 v-for="table in shop.processes"
                 :key="table.id"
                 class="flex justify-between p-1 flex-wrap mr-2"
-                >{{ table.tables.name }} | {{ table.process_status}}
+                >{{ table.tables.name }} | {{ table.tables.color}}
 
                     <button
-                    @click.prevent="submit"
+                    @click.prevent="submit(table.tables.id)"
                     class="ml-3 p-2 bg-amber-600 rounded-2xl text-xs font-light">Next step</button>
                 </div>
             </div>
@@ -27,8 +27,8 @@ const props = defineProps({
     workshops: Object,
 });
 
-const submit = () => {
-    router.post('/name/worker');
+const submit = (processId) => {
+    router.post(route('worker.process.complete', processId));
 };
 </script>
 

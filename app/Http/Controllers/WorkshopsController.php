@@ -6,6 +6,7 @@ use App\Models\Workshops;
 use App\Http\Requests\StoreWorkshopsRequest;
 use App\Http\Requests\UpdateWorkshopsRequest;
 use App\Models\Processes;
+use App\Models\Tables;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -22,7 +23,7 @@ class WorkshopsController extends Controller
             ->where('user_id', $user->id)
             ->get();
         $worksopsName = $workshops->pluck('name');
-        $data = $workshops->map(function($workshop) {
+        $data = $workshops->map(function ($workshop) {
             return [
                 'workshop_name' => $workshop->name,
                 'processes' => $workshop->processes->map(function ($process) {
@@ -101,24 +102,10 @@ class WorkshopsController extends Controller
         if (!$user) {
             abort(403, 'User not authorize');
         }
-        try {
-            $workshops = Workshops::query()->where('user_id', $user->id)->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            abort(404, 'Workshop not found');
-        }
-        $process = Processes::query()->findOrFail($processId);
-        if ($process->workshops_id !== $workshops->id) {
-            abort(403, 'Not authorize');
-        }
-        if (!$process->tables) {
-            abort(404, "Tables not found");
-        }
 
-        $process->update(['status' => 'completed']);
-
-        $tables = $process->tables;
+        $tables = Tables::query()->where('id', $processId);
+        dd($tables);
         $nextStatus = match ($tables->status) {
-            'pending' => 'in_acceptance',
             'in_acceptance' => 'in_painting',
             'in_painting' => 'in_assembly',
             'in_assembly' => 'in_delivery',
