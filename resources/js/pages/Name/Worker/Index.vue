@@ -4,7 +4,7 @@
         <div class="flex justify-between mx-auto px-2">
             <div v-for="shop in props.workshops" :key="shop.id">
                 <p class="text-center mb-2">{{ shop.workshop_name }}</p>
-                <p v-for="table in shop.processes" :key="table.id">{{ table.tables.name }} | {{ table.tables.status }}</p>
+                <p v-for="table in shop.processes" :key="table.id">{{ table.tables.name }} | {{ table.process_status}}</p>
             </div>
         </div>
     </div>

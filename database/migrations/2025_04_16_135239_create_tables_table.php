@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name'); // e.g., "Big family table"
             $table->string('color')->nullable(); // Color can be null befor painting
             $table->string('material'); // e.g., "Wood", "Plastic", "Metal"
-            $table->string('status')->default('pending'); // Status: 'pending', 'in_aceptance', 'in_painting', 'in_assembly', 'in_delivery', 'completed'
+            $table->string('status')->default('in_aceptance'); // Status: 'in_aceptance', 'in_painting', 'in_assembly', 'in_delivery', 'completed'
             $table->decimal('price', 8, 2); // Price of the table
             $table->foreignId('orders_id')->constrained('orders')->onDelete('cascade'); // Foreign key to the orders table
             $table->timestamps();

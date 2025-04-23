@@ -23,7 +23,7 @@ class TablesFactory extends Factory
             'name' => $this->faker->city().' table',
             'color' => $this->faker->colorName(),
             'material' => $this->faker->randomElement(['wood', 'metal', 'plastic']),
-            'status' => 'pending',
+            'status' => 'in_acceptance',
             'price' => $this->faker->randomFloat(2, 100, 1000),
             'orders_id' => Orders::factory(),
         ];
