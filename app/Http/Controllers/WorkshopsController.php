@@ -103,8 +103,8 @@ class WorkshopsController extends Controller
             abort(403, 'User not authorize');
         }
 
-        $tables = Tables::query()->where('id', $processId);
-        dd($tables);
+        $tables = Tables::query()->where('id', $processId)->get();
+
         $nextStatus = match ($tables->status) {
             'in_acceptance' => 'in_painting',
             'in_painting' => 'in_assembly',
@@ -112,7 +112,10 @@ class WorkshopsController extends Controller
             'in_delivery' => 'completed',
             default => $tables->status,
         };
-        $tables->update(['status' => $nextStatus]);
+
+        foreach ($tables as $model) {
+            $model->update(['status' => $nextStatus]);
+        };
 
         return redirect()->route('worker.workshop')->with('message', 'Process completed successfully');
     }
