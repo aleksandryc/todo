@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
     // Routes for workers
     Route::middleware('role:worker')->group(function () {
         Route::get('/name/worker/', [WorkshopsController::class, 'index'])->name('worker.index');
-        Route::put('/name/worker/{processId}/{shopId}/', [WorkshopsController::class, 'completeProcess'])->name('worker.process.complete');
+        Route::put('/name/worker/{tableId}/{shopId}/', [WorkshopsController::class, 'completeProcess'])->name('worker.process.complete');
     });
 
     // Routes for client (access only to their orders)

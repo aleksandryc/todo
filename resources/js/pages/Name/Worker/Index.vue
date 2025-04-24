@@ -22,8 +22,8 @@ const props = defineProps({
     workshops: Object,
 });
 
-const submit = (processId, shopId) => {
-    router.put(route('worker.process.complete', {processId, shopId}));
+const submit = (tableId, shopId) => {
+    router.put(route('worker.process.complete', {tableId, shopId}));
 };
 </script>
 

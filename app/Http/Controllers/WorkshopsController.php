@@ -40,17 +40,23 @@ class WorkshopsController extends Controller
         ]);
     }
 
-    public function completeProcess(Request $request, $processId, $shopId)
+    public function completeProcess(Request $request, $tableId, $shopId)
     {
         $paint = Processes::query()->where('workshops_id', 2)->get()->count();
         $assembly = Processes::query()->where('workshops_id', 3)->get()->count();
         $nextShop = $shopId + 1;
-
         if ($nextShop === 2 && $paint >= 3 || $nextShop === 3 && $assembly >= 3){
             return redirect()->route('worker.index')->with('message', 'Workshop is full!');
         }
+        $findOrder = Tables::where('orders_id', Tables::find($tableId)->orders_id)->with('order')->get();
 
-        $tables = Processes::query()->with('Tables.order')->where('table_id', $processId)->get();
+        dd($findOrder);
+
+
+
+
+
+        $tables = Processes::query()->with('Tables.order')->where('table_id', $tableId)->get();
         foreach ($tables as $table) {
             if ($table->workshops_id === 4 && $table->tables->status === 'in_delivery') {
                 $table->update(['status' => 'completed']);
