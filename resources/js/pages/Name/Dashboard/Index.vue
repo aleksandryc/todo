@@ -30,13 +30,15 @@
                 </h3>
                 <div v-if="workshop.processes.length">
                     <div v-for="process in workshop.processes" :key="process.id" class="border-t py-2">
-                        <p class="p-2">
-                            Table: {{ process.tables.name }} (Order #{{ process.tables.orders_id }})
-                            <span class="text-sm ml-3">Status: </span>
-                            <span class="text-sm " :class="{
-                            'text-green-500': process.status === 'in_progress',
-                            'text-red-500': process.status === 'pending',
-                        }">{{ process.status }}</span>
+                        <p class="p-2 flex justify-between">
+                            {{ process.tables.name }} (Order #{{ process.tables.orders_id }})
+                            <div>
+                                <span class="text-sm ml-3">Status: </span>
+                                <span class="text-sm " :class="{
+                                'text-green-500': process.status === 'in_progress',
+                                'text-red-500': process.status === 'pending',
+                                                        }">{{ process.status }}</span>
+                            </div>
                         </p>
                     </div>
                 </div>
