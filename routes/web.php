@@ -50,8 +50,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/name/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/name/orders', [OrdersController::class, 'index']);
         Route::get('/name/tables', [TablesController::class, 'index']);
-        //Route::get('/name/workshops', [WorkshopsController::class, 'index'])->name('workshops.index');
-        //Route::post('name/tables/{table}/status', [TablesController::class,'updateStatus'])->name('tables.updateStatus');
     });
     // Routes for workers
     Route::middleware('role:worker')->group(function () {

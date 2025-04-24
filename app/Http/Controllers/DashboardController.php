@@ -23,7 +23,7 @@ class DashboardController extends Controller
         $workshops = Workshops::query()
         ->with(['processes' => function($query) {
             $query->where('status', 'in_progress')
-            ->with('table');  // Load tables for each proccess
+            ->with('tables');  // Load tables for each proccess
         }])->get();
 
         return Inertia::render('Name/Dashboard/Index', [

@@ -27,7 +27,7 @@ class WorkshopsSeeder extends Seeder
         foreach ($workshops as $workshopName) {
             Workshops::create([
                 'name' => $workshopName,
-                'max_tables' => 3,
+                'max_tables' => ($workshopName === 'acceptance' || $workshopName === 'delivery') ? null : 3,
                 'user_id' => $worker->id,
             ]);
         }

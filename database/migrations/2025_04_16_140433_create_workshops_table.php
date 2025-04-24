@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('workshops', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Name of the workshop: 'acceptance', 'painting', 'assembly', 'delivery'
-            $table->integer('max_tables')->default(3); // Maximum number of tables that can be processed in this workshop
+            $table->integer('max_tables')->nullable(); // Maximum number of tables that can be processed in this workshop
             $table->timestamps();
         });
     }

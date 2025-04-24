@@ -45,6 +45,7 @@ class DatabaseSeeder extends Seeder
         $workshops = [
         Workshops::factory()->create([
             'name' => 'acceptance',
+            'max_tables' => null,
         ]),
         Workshops::factory()->create([
             'name' => 'painting',
@@ -54,6 +55,7 @@ class DatabaseSeeder extends Seeder
         ]),
         Workshops::factory()->create([
             'name' => 'delivery',
+            'max_tables' => null,
         ]),
         ];
 

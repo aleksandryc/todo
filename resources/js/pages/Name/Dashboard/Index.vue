@@ -26,12 +26,12 @@
                     {{
                         workshop.name.charAt(0).toUpperCase() + workshop.name.slice(1)
                     }}
-                    ({{ workshop.processes.length }} / 3)
+                    <span v-if="workshop.max_tables">({{ workshop.processes.length }} / 3)</span>
                 </h3>
                 <div v-if="workshop.processes.length">
                     <div v-for="process in workshop.processes" :key="process.id" class="border-t py-2">
                         <p class="p-2">
-                            Table: {{ process.table.name }} (Order #{{ process.table.orders_id }})
+                            Table: {{ process.tables.name }} (Order #{{ process.tables.orders_id }})
                             <span class="text-sm ml-3">Status: </span>
                             <span class="text-sm " :class="{
                             'text-green-500': process.status === 'in_progress',
