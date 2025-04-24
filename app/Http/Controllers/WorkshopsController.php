@@ -26,7 +26,8 @@ class WorkshopsController extends Controller
         $data = $workshops->map(function ($workshop) {
             return [
                 'workshop_name' => $workshop->name,
-                'processes' => $workshop->processes->where('status', '!=','completed')->map(function ($process) {
+                'workshop_id' => $workshop->id,
+                'processes' => $workshop->processes->where('status', '!=', 'completed')->map(function ($process) {
                     return [
                         'process_status' => $process->status,
                         'tables' => $process->tables
@@ -39,21 +40,22 @@ class WorkshopsController extends Controller
         ]);
     }
 
-    public function completeProcess(Request $request, $processId)
+    public function completeProcess(Request $request, $processId, $shopId)
     {
-        $user = $request->user();
-        if (!$user) {
-            abort(403, 'User not authorize');
+        $paint = Processes::query()->where('workshops_id', 2)->get()->count();
+        $assembly = Processes::query()->where('workshops_id', 3)->get()->count();
+        $nextShop = $shopId + 1;
+
+        if ($nextShop === 2 && $paint >= 3 || $nextShop === 3 && $assembly >= 3){
+            return redirect()->route('worker.index')->with('message', 'Workshop is full!');
         }
 
         $tables = Processes::query()->with('Tables')->where('table_id', $processId)->get();
         foreach ($tables as $table) {
-
             if ($table->workshops_id === 4 && $table->tables->status === 'in_delivery') {
                 $table->update(['status' => 'completed']);
                 $table->tables->update(['status' => 'completed']);
             } else {
-
                 $nextWorkshop = match ($table->workshops_id) {
                     1 => 2,
                     2 => 3,
@@ -67,12 +69,10 @@ class WorkshopsController extends Controller
                     'in_delivery' => 'completed',
                     default => $table->tables->status,
                 };
-
                 $table->tables->update(['status' => $nextStatus]);
                 $table->update(['workshops_id' => $nextWorkshop]);
             }
-        };
-
+        }
         return redirect()->route('worker.index')->with('message', 'Process completed successfully');
     }
     /**

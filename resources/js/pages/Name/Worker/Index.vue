@@ -7,7 +7,7 @@
                 <div v-for="table in shop.processes" :key="table.id" class="mr-2 flex flex-wrap justify-between p-1">
                     {{ table.tables.name }} | {{ table.tables.color }}
 
-                    <button @click.prevent="submit(table.tables.id)" class="ml-3 rounded-2xl bg-amber-600 p-2 text-xs font-light">Next step</button>
+                    <button @click.prevent="submit(table.tables.id, shop.workshop_id)" class="ml-3 rounded-2xl bg-amber-600 p-2 text-xs font-light">Next step</button>
                 </div>
             </div>
         </div>
@@ -22,8 +22,8 @@ const props = defineProps({
     workshops: Object,
 });
 
-const submit = (processId) => {
-    router.put(route('worker.process.complete', processId));
+const submit = (processId, shopId) => {
+    router.put(route('worker.process.complete', {processId, shopId}));
 };
 </script>
 
