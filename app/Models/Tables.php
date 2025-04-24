@@ -21,7 +21,7 @@ class Tables extends Model
 
     public function order()
     {
-        return $this->belongsTo(Orders::class);
+        return $this->belongsTo(Orders::class, 'orders_id', 'id');
     }
 
     public function processes()

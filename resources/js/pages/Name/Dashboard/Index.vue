@@ -28,7 +28,7 @@
                 </h3>
                 <div v-if="workshop.processes.length">
                     <div v-for="process in workshop.processes" :key="process.id" class="border-t py-2">
-                        <div class="flex justify-between p-2">
+                        <div class="flex justify-between p-2" :class="{'text-gray-500': process.status === 'completed'}">
                             <span> {{ process.tables.name }} (Order #{{ process.tables.orders_id }}) </span>
                             <div>
                                 <span class="ml-3 text-sm">Status: </span>
@@ -44,7 +44,7 @@
                         </div>
                     </div>
                 </div>
-                <p v-else class="text-red-800">No tables in work</p>
+                <p v-else class="text-red-500">No tables in work</p>
             </div>
         </div>
     </div>

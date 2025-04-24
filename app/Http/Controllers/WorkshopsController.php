@@ -50,12 +50,16 @@ class WorkshopsController extends Controller
             return redirect()->route('worker.index')->with('message', 'Workshop is full!');
         }
 
-        $tables = Processes::query()->with('Tables')->where('table_id', $processId)->get();
+        $tables = Processes::query()->with('Tables.order')->where('table_id', $processId)->get();
         foreach ($tables as $table) {
             if ($table->workshops_id === 4 && $table->tables->status === 'in_delivery') {
                 $table->update(['status' => 'completed']);
                 $table->tables->update(['status' => 'completed']);
+                $table->tables->order->update(['status' => 'completed']);
             } else {
+                if( $table->workshops_id === 3) {
+                    $table->tables->order->update(['status' => 'in_delivery']);
+            }
                 $nextWorkshop = match ($table->workshops_id) {
                     1 => 2,
                     2 => 3,
@@ -71,6 +75,7 @@ class WorkshopsController extends Controller
                 };
                 $table->tables->update(['status' => $nextStatus]);
                 $table->update(['workshops_id' => $nextWorkshop]);
+                $table->tables->order->update(($table->workshops_id !== 4 ? ['status' => 'in_progress'] : ['status' => 'in_delivery']));
             }
         }
         return redirect()->route('worker.index')->with('message', 'Process completed successfully');

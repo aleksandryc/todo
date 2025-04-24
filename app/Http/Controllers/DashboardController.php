@@ -23,7 +23,7 @@ class DashboardController extends Controller
         //queue in workshops
         $workshops = Workshops::query()
         ->with(['processes' => function($query) {
-            $query->where('status', 'in_progress')
+            $query
             ->with('tables');  // Load tables for each proccess
         }])->get();
 

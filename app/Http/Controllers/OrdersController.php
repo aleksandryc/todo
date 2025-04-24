@@ -25,9 +25,7 @@ class OrdersController extends Controller
         ->when($filters['client'] ?? null, fn($query, $client) => $query->whereHas('client', fn($q) => $q->where('name', 'like', "%$client%")->orWhere('email', 'like', "%$client%")))
         ->when($filters['id'] ?? null, fn($query, $id) => $query->where('id', $id));
 
-
         $orders = $query->paginate(10)->withQueryString();
-
 
         return Inertia::render('Name/Orders/Index', [
             'orders' => $orders,
