@@ -1,0 +1,79 @@
+<?php
+
+public function completeProcess(Request $request, $tableId, $shopId)
+{
+    $paint = Processes::query()->where('workshops_id', 2)->count();
+    $assembly = Processes::query()->where('workshops_id', 3)->count();
+
+    if ($shopId == 1) {
+        if ($nextShop == 2 && $paint >= 3 || $nextShop == 3 && $assembly >= 3) {
+            return redirect()->route('worker.index')->with('message', 'Workshop is full');
+        }
+    }
+
+    $targetTable = Tables::find($tableId);
+    $orderTables = Tables::where('orders_id', $targetTable->orders_id)->get();
+
+    $tables = Processes::query()->with('tables.order')->where('table_id', $tableId)->get();
+
+    foreach ($tables as $table) {
+        if ($table->workshops_id == 4 && $table->tables->status === 'in_delivery') {
+            // Check if all tables are in_delivery before allowing complete
+            $allInDelivery = $orderTables->every(fn($t) => $t->status === 'in_delivery');
+            if ($allInDelivery) {
+                $table->update(['status' => 'completed']);
+                $table->tables->update(['status' => 'completed']);
+                $table->tables->order->update(['status' => 'completed']);
+            }
+        } else {
+            if ($table->workshops_id == 3) {
+                $table->tables->order->update(['status' => 'in_delivery']);
+            }
+
+            // Match next workshop
+            $nextWorkshop = match ($table->workshops_id) {
+                1 => 2,
+                2 => 3,
+                3 => 4,
+                default => $table->select('workshops_id'),
+            };
+
+            // Match next status
+            $nextStatus = match ($table->tables->status) {
+                'in_acceptance' => 'in_painting',
+                'in_painting' => 'in_assembly',
+                'in_assembly' => 'in_delivery',
+                'in_delivery' => 'completed',
+                default => $table->tables->status,
+            };
+
+            // Only allow status change to in_delivery if ALL tables are in_assembly
+            if ($nextStatus === 'in_delivery') {
+                $allInAssembly = $orderTables->every(fn($t) => $t->status === 'in_assembly');
+                if (!$allInAssembly) continue;
+            }
+
+            // Only allow complete if ALL in_delivery
+            if ($nextStatus === 'completed') {
+                $allInDelivery = $orderTables->every(fn($t) => $t->status === 'in_delivery');
+                if (!$allInDelivery) continue;
+            }
+
+            $table->tables->update(['status' => $nextStatus]);
+            $table->update(['workshops_id' => $nextWorkshop]);
+
+            if ($nextStatus === 'in_painting') {
+                $targetTable->order->update(['status' => 'in_progress']);
+            }
+
+            if ($nextStatus === 'in_delivery') {
+                $allInDelivery = $orderTables->every(fn($t) => $t->status === 'in_delivery');
+                if ($allInDelivery) {
+                    $targetTable->order->update(['status' => 'in_delivery']);
+                }
+            }
+        }
+    }
+
+    return redirect()->route('worker.index')->with('message', 'Process completed successfully');
+}
