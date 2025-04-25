@@ -45,18 +45,24 @@ class WorkshopsController extends Controller
         $paint = Processes::query()->where('workshops_id', 2)->get()->count();
         $assembly = Processes::query()->where('workshops_id', 3)->get()->count();
         $nextShop = $shopId + 1;
+        $statusOfOrder = Tables::where('orders_id', Tables::find($tableId)->orders_id)->with('order')->get()->map(fn ($order) => $order->order->status);
+        $tables = Processes::query()->with('Tables.order')->where('table_id', $tableId)->get();
+        // Check available spaces in workshops
         if ($nextShop === 2 && $paint >= 3 || $nextShop === 3 && $assembly >= 3){
             return redirect()->route('worker.index')->with('message', 'Workshop is full!');
         }
-        $findOrder = Tables::where('orders_id', Tables::find($tableId)->orders_id)->with('order')->get();
-
-        dd($findOrder);
+        // Change order and table status
 
 
 
 
+        dd($tables);
 
-        $tables = Processes::query()->with('Tables.order')->where('table_id', $tableId)->get();
+
+
+
+
+
         foreach ($tables as $table) {
             if ($table->workshops_id === 4 && $table->tables->status === 'in_delivery') {
                 $table->update(['status' => 'completed']);
