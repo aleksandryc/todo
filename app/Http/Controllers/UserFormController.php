@@ -31,12 +31,14 @@ class UserFormController extends Controller
                         'name' => 'phone',
                         'label' => 'Phone',
                         'type' => 'tel',
+                        'rules' => 'required',
                         // Set the rules
                     ],
                     [
                         'name' => 'status',
                         'label' => 'Active',
-                        'type' => 'text', // Needed checkbox
+                        'type' => 'text',
+                        'rules' => 'required',// Needed checkbox
                         // Set the rules
                     ],
                     [
@@ -127,6 +129,6 @@ class UserFormController extends Controller
         $pdfPath = ('forms/'.'_'.now()->timestamp.'.pdf');
         Storage::put($pdfPath, $pdf->output());
 
-        return redirect()->route('forms.show', $formKey)->with('message', 'Form submitted successfully!');
+        return redirect()->route('forms.create', $formKey)->with('message', 'Form submitted successfully!');
     }
 }
