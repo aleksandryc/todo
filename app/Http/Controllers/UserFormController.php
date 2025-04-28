@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class UserFormController extends Controller
 {
@@ -107,9 +109,24 @@ class UserFormController extends Controller
             abort(404, 'Form Not Found');
         }
 
-        // Rules for validation
+        // Validation
+        $rules = [];
+        foreach ($formConfig['fields'] as $field) {
+            $rules[$field['name']] = $field['rules'];
+        }
+        $validateData = $request->validate($rules);
+        // Preparation data for PDF
+        $pdfData = [
+            'title' => $formConfig['title'],
+            'fields' => $validateData,
+        ];
+        // Generate PDF
+        $pdf = Pdf::loadView('forms.pdf', $pdfData);
 
-        // Validation, create PDF and Generate email
-        return back()->with('message', 'Form submitted successfully!');
+        // Save PDF
+        $pdfPath = ('forms/'.'_'.now()->timestamp.'.pdf');
+        Storage::put($pdfPath, $pdf->output());
+
+        return redirect()->route('forms.show', $formKey)->with('message', 'Form submitted successfully!');
     }
 }
