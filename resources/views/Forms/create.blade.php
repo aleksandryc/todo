@@ -1,5 +1,7 @@
 <h1>{{ $formTitle }}</h1>
 
+@if(isset($formFields) && is_array($formFields) && count($formFields) > 0)
+
 <form action="{{ route('forms.submit', $formKey) }}" method="post"
     enctype="multipart/form-data">
     @csrf
@@ -34,3 +36,7 @@
 
     <button type="submit">Send</button>
 </form>
+
+@else
+    <h2>Form does not created!</h2>
+@endif
