@@ -18,11 +18,16 @@ use Illuminate\Validation\Rule;
 Route::get('login', [AuthLoginController::class, 'create'])->name('login');
 Route::post('login', [AuthLoginController::class, 'store'])->name('login.store');
 Route::post('/logout', [AuthLoginController::class, 'logout'])->name('logout')->middleware('auth');
+
 //Form for portal
-Route::get('/form_module', function () {
-    return Inertia::render('UserForm/Index');
+Route::prefix('forms')->name('forms.')->group(function(){
+    // Show form by key
+    Route::get('/{formKey}', [UserFormController::class, 'create'])->name('create');
+    // Submit form
+    Route::post('/{formKey}/submit', [UserFormController::class, 'submit'])->name('submit');
 });
-Route::post('/userform/submit', [UserFormController::class, 'submit'])->name('userform.submit');
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/', [UserControler::class, 'home'])->name('home');
