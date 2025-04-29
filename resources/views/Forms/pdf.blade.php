@@ -14,18 +14,19 @@
 
     <table border="1" cellpadding="8" cellspacing="0" width="100%">
         @if(!empty($fields) && is_array($fields))
-            @foreach($fields as $key => $value)
-                <tr>
-                    <td><strong>{{ htmlspecialchars(ucwords(str_replace('_', ' ', $key))) }}</strong></td>
-                    <td>{{ htmlspecialchars($value) }}</td>
-                </tr>
-            @endforeach
+        @foreach($fields as $key => $value)
+        <tr>
+            <td><strong>{{ htmlspecialchars(ucwords(str_replace('_', ' ', $key))) }}</strong></td>
+            <td>{{ htmlspecialchars($value) }}</td>
+        </tr>
+        @endforeach
         @else
-            <tr>
-                <td colspan="2">No data available</td>
-            </tr>
+        <tr>
+            <td colspan="2">No data available</td>
+        </tr>
         @endif
     </table>
     <p>Submitted at: {{ now()->toDateTimeString() }}</p>
 </body>
+
 </html>

@@ -94,6 +94,19 @@ class UserFormController extends Controller
                         'rules' => ['required'],
                         'required' => true,
                     ],
+                    'website' => [
+                        'label' => 'Link to website',
+                        'type' => 'url',
+                        'rules' => ['nullable', 'url'],
+                        'required' => false,
+                        'placeholder' => 'Example: https://example.com',
+                    ],
+                    'attachment' => [
+                        'label' => 'Attach a file',
+                        'type' => 'file',
+                        'rules' => ['nullable', 'file', 'max:2048'],
+                        'required' => false,
+                    ],
                 ],
             ],
             default => abort(404),
@@ -150,16 +163,14 @@ class UserFormController extends Controller
 
         $validateData = $request->validate($rules);
 
-        /* Need to be checked before use
-        It makes notes in pdf  file with file name and destination
-        But phisycaly file does not exist
+
         // Save upload file
-        if($request->hasFile('file')) {
-            $file = $request->file('file');
-            $path = $file->store('uploads/forms', 'public');
-            $formData['file_path'] = $path;
+        if($request->hasFile($name)) {
+            $uploadedfile = $request->file($name);
+            $filepath = $uploadedfile->store('attachments', 'public');
+            $formData['file_path'] = $filepath; //Adding file path to form
         }
-        */
+
 
         //Stoere in JSON
         $jsonPath = storage_path('app/forms/json/');

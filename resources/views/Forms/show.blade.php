@@ -73,12 +73,13 @@
                     </div>
                 @endif
 
-                @if($field['type'] === 'file')
+                @if($field['type'] === 'file' || $field['type'] === 'url')
                     <input
-                        type="file"
+                        type="{{ $field['type'] }}"
                         name="{{ $name }}"
                         id="{{ $name }}"
                         class="w-full border rounded px-3 py-2"
+                        placeholder="{{ $field['placeholder'] ?? '' }}"
                         {{ !empty($field['required']) ? 'required' : '' }}>
                 @endif
                 @error($name)
