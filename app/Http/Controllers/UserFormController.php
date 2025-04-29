@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use App\Models\SubmittedForm;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class UserFormController extends Controller
 {
@@ -52,7 +55,7 @@ class UserFormController extends Controller
                     'file' => [
                         'label' => 'Photo',
                         'type' => 'file',
-                        'rules' => ['nullable', 'file', 'mimes:jpg', 'jpeg', 'max:2048'],
+                        'rules' => ['nullable', 'file', 'max:2048'],
                     ],
                 ],
             ],
@@ -145,15 +148,40 @@ class UserFormController extends Controller
             }
         }
 
+        $validateData = $request->validate($rules);
+
+        /* Need to be checked before use
+        It makes notes in pdf  file with file name and destination
+        But phisycaly file does not exist
         // Save upload file
-        /*
         if($request->hasFile('file')) {
             $file = $request->file('file');
             $path = $file->store('uploads/forms', 'public');
             $formData['file_path'] = $path;
         }
         */
-        $validateData = $request->validate($rules);
+
+        //Stoere in JSON
+        $jsonPath = storage_path('app/forms/json/');
+        $formDataWithName = [
+            'form_name' => $formConfig['title'] ?? 'untitled',
+            'submitted_at' => now()->toDayDateTimeString(),
+            'fields' => $validateData
+        ];
+
+
+        if (!File::exists($jsonPath)) {
+            File::makeDirectory($jsonPath, 0755, true);
+        }
+        $fileName = 'form_'. now()->format('Ymd_His').'.json';
+        File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
+
+        //store in db
+        SubmittedForm::create([
+            'form_name' => $formConfig['title'] ?? 'Untitled Form',
+            'form_json' => $validateData,
+        ]);
+
         // Preparation data for PDF
         $pdfData = [
             'title' => $formConfig['title'],
@@ -161,6 +189,10 @@ class UserFormController extends Controller
         ];
         // Generate PDF
         $pdf = Pdf::loadView('forms.pdf', $pdfData);
+
+        // Save PDF in file
+        $pdfPath = '/forms/pdf/form_' . now()->format('Ymd_His') . '.pdf';
+        Storage::disk('local')->put($pdfPath, $pdf->output());
 
         // Show pdf in browser
         return $pdf->stream('form_submission.pdf');
