@@ -22,7 +22,7 @@ Route::post('/logout', [AuthLoginController::class, 'logout'])->name('logout')->
 //Form for portal
 Route::prefix('forms')->name('forms.')->group(function(){
     // Show form by key
-    Route::get('/{formKey}', [UserFormController::class, 'create'])->name('create');
+    Route::get('/{formKey}', [UserFormController::class, 'show'])->name('show');
     // Submit form
     Route::post('/{formKey}/submit', [UserFormController::class, 'submit'])->name('submit');
 });
