@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         img {
-            max-width: 300px;
+            max-width: 500px;
             height: auto;
         }
     </style>
@@ -18,25 +18,23 @@
 <body>
     <h1>{{ htmlspecialchars($title ?? 'Document') }}</h1>
 
-    <table border="1" cellpadding="8" cellspacing="0" width="100%">
+    <table border="1" cellpadding="8" cellspacing="0" width="90%">
         @if(!empty($fields) && is_array($fields))
         @foreach($fields as $key => $value)
         <tr>
             <td><strong>{{ htmlspecialchars(ucwords(str_replace('_', ' ', $key))) }}</strong></td>
             <td>
                 @php
-                    $embeddedKey = $key . '_embedded';
-                    $embeddedData = $fields[$embeddedKey] ?? null;
+                $embeddedData = $embeddedImages[$key] ?? null;
                 @endphp
-                    @if(is_string($embeddedData) && preg_match('/^data:image\/(png|jpg|jpeg|gif):baase64./', $embeddedData))
-                        <img src="{{ $embeddedData }}" alt="Embedded image">
-                    @endif
-                @if(is_string($value) && filter_var($value, FILTER_VALIDATE_URL))
-                    <a href="{{ $value }}">{{ $value }}</a>
-                @elseif(is_string($value) && str_starts_with($value, 'attachments/'))
-                    Attached file: {{ $value}}
+                @if($embeddedData)
+                <img src="{{ $embeddedData }}" alt="Embedded image">
+
+                @elseif(str_starts_with($value, 'attachments/'))
+                <a href="{{ asset('storage/'.$value) }}">{{ asset('storage/'.$value) }}</a>
+
                 @else
-                    {{ htmlspecialchars($value) }}
+                {{ htmlspecialchars($value) }}
                 @endif
             </td>
         </tr>

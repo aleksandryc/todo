@@ -161,8 +161,8 @@ class UserFormController extends Controller
                     break;
             }
         }
-
         $formData = $request->validate($rules);
+        $embeddedImages = [];
         // Save upload file
         foreach ($formConfig['fields'] as $name => $field){
             if ($field['type'] === 'file' && $request->hasFile($name)) {
@@ -173,9 +173,8 @@ class UserFormController extends Controller
                 //Prepare embedded image
                 $fullPath = storage_path('app/public/' . $filepath);
                 $mimeType = File::mimeType($fullPath);
-                $base64 = 'data:' . $mimeType . ':base64.' . base64_encode(File::get($fullPath));
-                $formData[$name . '_embedded'] = $base64;
-
+                $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+                $embeddedImages[$name] = $base64;
             }
         }
 
@@ -186,8 +185,6 @@ class UserFormController extends Controller
             'submitted_at' => now()->toDayDateTimeString(),
             'fields' => $formData
         ];
-
-
         if (!File::exists($jsonPath)) {
             File::makeDirectory($jsonPath, 0755, true);
         }
@@ -204,9 +201,11 @@ class UserFormController extends Controller
         $pdfData = [
             'title' => $formConfig['title'],
             'fields' => $formData,
+            'embeddedImages' => $embeddedImages,
         ];
         // Generate PDF
         $pdf = Pdf::loadView('forms.pdf', $pdfData);
+        $pdf->setOptions(['isRemoteEnabled' => true]);
 
         // Save PDF in file
         $pdfPath = 'forms/pdf/form_' . now()->format('Ymd_His') . '.pdf';
