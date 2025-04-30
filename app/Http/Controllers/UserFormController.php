@@ -18,7 +18,7 @@ class UserFormController extends Controller
         For example, two forms have been added to the controller, but if necessary,
         they can be moved to a separate file or use a database.
         */
-        return match($formKey) {
+        return match ($formKey) {
             'new-employee' => [
                 'title' => 'Add New Employee Form',
                 'fields' => [
@@ -138,7 +138,7 @@ class UserFormController extends Controller
         // Validation
         $rules = [];
         foreach ($formConfig['fields'] as $name => $field) {
-            if(!empty($field['rules'])) {
+            if (!empty($field['rules'])) {
                 $rules[$name] = $field['rules'];
                 continue;
             }
@@ -146,9 +146,10 @@ class UserFormController extends Controller
             switch ($field['type']) {
                 case 'radio':
                 case 'select':
-                    $rules[$name] = [$field['required'] ? 'required' : 'nullable',
-                    Rule::in($field['options']),
-                ];
+                    $rules[$name] = [
+                        $field['required'] ? 'required' : 'nullable',
+                        Rule::in($field['options']),
+                    ];
                     break;
                 case 'email':
                     $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'email'];
@@ -164,7 +165,7 @@ class UserFormController extends Controller
         $formData = $request->validate($rules);
         $embeddedImages = [];
         // Save upload file
-        foreach ($formConfig['fields'] as $name => $field){
+        foreach ($formConfig['fields'] as $name => $field) {
             if ($field['type'] === 'file' && $request->hasFile($name)) {
                 $uploadedfile = $request->file($name);
                 $filepath = $uploadedfile->store('attachments', 'public');
@@ -172,14 +173,16 @@ class UserFormController extends Controller
 
                 //Prepare embedded image
                 $fullPath = storage_path('app/public/' . $filepath);
-                $mimeType = File::mimeType($fullPath);
-                $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                $embeddedImages[$name] = $base64;
+                if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
+                    $mimeType = File::mimeType($fullPath);
+                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+                    $embeddedImages[$name] = $base64;
+                }
             }
         }
 
         //Stoere in JSON
-        $jsonPath = storage_path('app/forms/json/');
+        $jsonPath = storage_path('app/public/forms/');
         $formDataWithName = [
             'form_name' => $formConfig['title'] ?? 'untitled',
             'submitted_at' => now()->toDayDateTimeString(),
@@ -188,7 +191,7 @@ class UserFormController extends Controller
         if (!File::exists($jsonPath)) {
             File::makeDirectory($jsonPath, 0755, true);
         }
-        $fileName = 'form_'. now()->format('Ymd_His').'.json';
+        $fileName = 'form_' . now()->format('Ymd_His') . '.json';
         File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
 
         //store in db
@@ -208,7 +211,7 @@ class UserFormController extends Controller
         $pdf->setOptions(['isRemoteEnabled' => true]);
 
         // Save PDF in file
-        $pdfPath = 'forms/pdf/form_' . now()->format('Ymd_His') . '.pdf';
+        $pdfPath = 'public/attachments/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('local')->put($pdfPath, $pdf->output());
 
         // Show pdf in browser

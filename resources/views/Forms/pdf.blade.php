@@ -28,9 +28,9 @@
                 $embeddedData = $embeddedImages[$key] ?? null;
                 @endphp
                 @if($embeddedData)
-                <img src="{{ $embeddedData }}" alt="Embedded image">
+                <a href="{{ asset('storage/'.$value) }}"><img src="{{ $embeddedData }}" alt="Embedded image"></a>
 
-                @elseif(str_starts_with($value, 'attachments/'))
+                @elseif(is_string($value) && str_starts_with($value, 'attachments/'))
                 <a href="{{ asset('storage/'.$value) }}">{{ asset('storage/'.$value) }}</a>
 
                 @else
