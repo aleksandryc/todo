@@ -163,21 +163,23 @@ class UserFormController extends Controller
 
         $validateData = $request->validate($rules);
 
-
+        $formData = $validateData;
         // Save upload file
-        if($request->hasFile($name)) {
-            $uploadedfile = $request->file($name);
-            $filepath = $uploadedfile->store('attachments', 'public');
-            $formData['file_path'] = $filepath; //Adding file path to form
+        foreach ($formConfig['fields'] as $name => $field){
+            if ($field['type'] === 'file' && $request->hasFile($name)) {
+                # code...
+                $uploadedfile = $request->file($name);
+                $filepath = $uploadedfile->store('attachments', 'public');
+                $formData['file_path'] = $filepath; //Adding file path to form
+            }
         }
-
 
         //Stoere in JSON
         $jsonPath = storage_path('app/forms/json/');
         $formDataWithName = [
             'form_name' => $formConfig['title'] ?? 'untitled',
             'submitted_at' => now()->toDayDateTimeString(),
-            'fields' => $validateData
+            'fields' => $formData
         ];
 
 
@@ -190,13 +192,13 @@ class UserFormController extends Controller
         //store in db
         SubmittedForm::create([
             'form_name' => $formConfig['title'] ?? 'Untitled Form',
-            'form_json' => $validateData,
+            'form_json' => $formData,
         ]);
 
         // Preparation data for PDF
         $pdfData = [
             'title' => $formConfig['title'],
-            'fields' => $validateData,
+            'fields' => $formData,
         ];
         // Generate PDF
         $pdf = Pdf::loadView('forms.pdf', $pdfData);

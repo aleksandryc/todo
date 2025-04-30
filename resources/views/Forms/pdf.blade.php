@@ -17,7 +17,15 @@
         @foreach($fields as $key => $value)
         <tr>
             <td><strong>{{ htmlspecialchars(ucwords(str_replace('_', ' ', $key))) }}</strong></td>
-            <td>{{ htmlspecialchars($value) }}</td>
+            <td>
+                @if(is_string($value) && filter_var($value, FILTER_VALIDATE_URL))
+                    <a href="{{ $value }}">{{ $value }}</a>
+                @elseif(is_string($value) && str_starts_with($value, 'attachments/'))
+                    Attached file: {{ $value}}
+                @else
+                    {{ htmlspecialchars($value) }}
+                @endif
+            </td>
         </tr>
         @endforeach
         @else
