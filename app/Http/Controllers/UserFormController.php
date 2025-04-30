@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Validation\Rule;
 use App\Models\SubmittedForm;
+
+use App\Mail\FormSubmissionMail;
+
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserFormController extends Controller
 {
@@ -211,10 +217,16 @@ class UserFormController extends Controller
         $pdf->setOptions(['isRemoteEnabled' => true]);
 
         // Save PDF in file
-        $pdfPath = 'public/attachments/form_' . now()->format('Ymd_His') . '.pdf';
-        Storage::disk('local')->put($pdfPath, $pdf->output());
-
+        $pdfContent = $pdf->output();
+        $relativePath = storage_path('pdf/form_' . now()->format('Ymd_His') . '.pdf');
+        Storage::disk('public')->put($relativePath, $pdfContent);
+        $attachmentPath = storage_path('app/public' . $relativePath);
         // Show pdf in browser
-        return $pdf->stream('form_submission.pdf');
+        //return $pdf->stream('form_submission.pdf');
+        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
     }
 }
+/*
+League\Flysystem\UnableToCreateDirectory
+Unable to create a directory at C:\Users\aleksandrb\Herd\todo\storage\app/public\C:/Users/aleksandrb/Herd/todo/storage/pdf.
+*/
