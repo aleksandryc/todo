@@ -20,8 +20,8 @@
     <h3>Attached images</h3>
     @foreach($data['embeddedImages'] as $name => $base64)
 
-        <img src="{{ $base64 }}" alt="{{ $name }}">
-    
+        <img src="{{ $base64 }}" alt="{{ $name }}" style="max-width: 248px;">
+
     @endforeach
     @endif
     <p>Submitted at: {{now()->toDayDateTimeString() }}</p>
