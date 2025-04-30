@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -161,7 +160,9 @@ class UserFormController extends Controller
                     $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'email'];
                     break;
                 case 'file':
-                    $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'file'];
+                    $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
+                        ? ['required', 'string']
+                        : ['nullable', 'file', 'max:5120'];
                     break;
                 default:
                     $rules[$name] = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
@@ -218,15 +219,11 @@ class UserFormController extends Controller
 
         // Save PDF in file
         $pdfContent = $pdf->output();
-        $relativePath = storage_path('pdf/form_' . now()->format('Ymd_His') . '.pdf');
+        $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('public')->put($relativePath, $pdfContent);
-        $attachmentPath = storage_path('app/public' . $relativePath);
-        // Show pdf in browser
-        //return $pdf->stream('form_submission.pdf');
+        $attachmentPath = 'app/public/' . $relativePath;
         Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
+        // Show pdf in browser
+        return $pdf->stream('form_submission.pdf');
     }
 }
-/*
-League\Flysystem\UnableToCreateDirectory
-Unable to create a directory at C:\Users\aleksandrb\Herd\todo\storage\app/public\C:/Users/aleksandrb/Herd/todo/storage/pdf.
-*/

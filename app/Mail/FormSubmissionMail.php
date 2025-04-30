@@ -30,6 +30,6 @@ class FormSubmissionMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('New Form Submitted')->view('mail.form-submission-mail')->attach(storage_path($this->pdfPath));
+        return $this->view('mail.form-submission-mail')->subject('New Form Submitted')->attach(storage_path($this->pdfPath));
     }
 }
