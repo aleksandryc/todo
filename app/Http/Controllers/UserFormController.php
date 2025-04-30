@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use App\Models\SubmittedForm;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserFormController extends Controller
 {
@@ -161,16 +162,20 @@ class UserFormController extends Controller
             }
         }
 
-        $validateData = $request->validate($rules);
-
-        $formData = $validateData;
+        $formData = $request->validate($rules);
         // Save upload file
         foreach ($formConfig['fields'] as $name => $field){
             if ($field['type'] === 'file' && $request->hasFile($name)) {
-                # code...
                 $uploadedfile = $request->file($name);
                 $filepath = $uploadedfile->store('attachments', 'public');
-                $formData['file_path'] = $filepath; //Adding file path to form
+                $formData[$name] = $filepath; //Adding file path to form
+
+                //Prepare embedded image
+                $fullPath = storage_path('app/public/' . $filepath);
+                $mimeType = File::mimeType($fullPath);
+                $base64 = 'data:' . $mimeType . ':base64.' . base64_encode(File::get($fullPath));
+                $formData[$name . '_embedded'] = $base64;
+
             }
         }
 
@@ -204,7 +209,7 @@ class UserFormController extends Controller
         $pdf = Pdf::loadView('forms.pdf', $pdfData);
 
         // Save PDF in file
-        $pdfPath = '/forms/pdf/form_' . now()->format('Ymd_His') . '.pdf';
+        $pdfPath = 'forms/pdf/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('local')->put($pdfPath, $pdf->output());
 
         // Show pdf in browser

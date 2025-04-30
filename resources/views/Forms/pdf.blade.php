@@ -7,6 +7,12 @@
     <title>{{ htmlspecialchars($title ?? 'Document') }}</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        img {
+            max-width: 300px;
+            height: auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,6 +24,13 @@
         <tr>
             <td><strong>{{ htmlspecialchars(ucwords(str_replace('_', ' ', $key))) }}</strong></td>
             <td>
+                @php
+                    $embeddedKey = $key . '_embedded';
+                    $embeddedData = $fields[$embeddedKey] ?? null;
+                @endphp
+                    @if(is_string($embeddedData) && preg_match('/^data:image\/(png|jpg|jpeg|gif):baase64./', $embeddedData))
+                        <img src="{{ $embeddedData }}" alt="Embedded image">
+                    @endif
                 @if(is_string($value) && filter_var($value, FILTER_VALIDATE_URL))
                     <a href="{{ $value }}">{{ $value }}</a>
                 @elseif(is_string($value) && str_starts_with($value, 'attachments/'))
