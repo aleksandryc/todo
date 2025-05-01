@@ -210,13 +210,13 @@ class UserFormController extends Controller
                 if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
                     if ($fileSize <= 5 * 1024 * 1024) {
                         $embeddedImages[$name] = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                        $attachments = $fullPath;
+                        $attachments[] = $fullPath;
                     } else {
                         $formData[$name] = Storage::url($filepath); //Link for download
                     }
                 } else {
                     if ($fileSize <= 5 * 1024 * 1024) {
-                        $attachments = $fullPath;
+                        $attachments[] = $fullPath;
                     } else {
                         $formData[$name] = Storage::url($filepath); //Link for download
                     }

@@ -14,9 +14,9 @@ class FormSubmissionMail extends Mailable
     use Queueable, SerializesModels;
 
     public $data;
-    public $pdfPath;
+    protected $pdfPath;
     public $embeddedImages;
-    public $attachmentList;
+    protected $attachmentList;
 
 
     public function __construct($pdfPath, $attachments, $formData, $embeddedImages)
@@ -34,6 +34,17 @@ class FormSubmissionMail extends Mailable
      */
     public function build()
     {
-        return $this->view('mail.form-submission-mail')->subject('New Form Submitted')->attach(storage_path($this->pdfPath));
+        $mail = $this->view('mail.form-submission-mail')
+            ->subject('New Form Submitted')
+            ->attach(storage_path($this->pdfPath));
+
+        if(is_array($this->attachmentList)) {
+            foreach ($this->attachmentList as $attachmentPath) {
+                $mail->attach($attachmentPath);
+            }
+        }elseif (is_string($this->attachmentList)) {
+            $mail->attach($$this->attachmentList);
+        }
+        return $mail;
     }
 }
