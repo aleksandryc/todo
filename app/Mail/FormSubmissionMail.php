@@ -15,12 +15,16 @@ class FormSubmissionMail extends Mailable
 
     public $data;
     public $pdfPath;
+    public $embeddedImages;
+    public $attachmentList;
 
 
-    public function __construct($data, $pdfPath)
+    public function __construct($pdfPath, $attachments, $formData, $embeddedImages)
     {
-        $this->data = $data;
+        $this->data = $formData;
         $this->pdfPath = $pdfPath;
+        $this->embeddedImages = $embeddedImages;
+        $this->attachmentList = $attachments;
     }
 
     /**

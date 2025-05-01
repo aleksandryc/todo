@@ -17,6 +17,27 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class UserFormController extends Controller
 {
+    protected function formatField($value)
+    {
+        $value = e($value);
+        $value = preg_replace(
+            '/((https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[@!$&\'()*+,;=]*)?)/i',
+            '<a href="$1" target="_blank">$1</a>',
+            $value
+        );
+        $value = preg_replace(
+            '/([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i',
+            '<a href="mailto:$1">$1</a>',
+            $value
+        );
+
+        $value = preg_replace(
+            '/(\+?\d[\d\s\-]{7,})/',
+            '<a href="tel:$1">$1</a>',
+            $value
+        );
+        return $value;
+    }
     protected function generateValidationRules(array $fields)
     {
         $rules = [];
@@ -173,20 +194,35 @@ class UserFormController extends Controller
         $rules = $this->generateValidationRules($formConfig);
         $formData = $request->validate($rules);
         $embeddedImages = []; // To show in pdf
+        $attachments = []; //Attach to mail
         // Save upload file
         foreach ($formConfig['fields'] as $name => $field) {
             if ($field['type'] === 'file' && $request->hasFile($name)) {
                 $uploadedfile = $request->file($name);
                 $filepath = $uploadedfile->store('attachments', 'public');
+                $fullPath = storage_path('app/public/' . $filepath);
+                $mimeType = File::mimeType($fullPath);
+                $fileSize = File::size($fullPath);
+
                 $formData[$name] = $filepath; //Adding file path to form
 
                 //Prepare embedded image
-                $fullPath = storage_path('app/public/' . $filepath);
                 if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
-                    $mimeType = File::mimeType($fullPath);
-                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                    $embeddedImages[$name] = $base64;
+                    if ($fileSize <= 5 * 1024 * 1024) {
+                        $embeddedImages[$name] = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+                        $attachments = $fullPath;
+                    } else {
+                        $formData[$name] = Storage::url($filepath); //Link for download
+                    }
+                } else {
+                    if ($fileSize <= 5 * 1024 * 1024) {
+                        $attachments = $fullPath;
+                    } else {
+                        $formData[$name] = Storage::url($filepath); //Link for download
+                    }
                 }
+            } else {
+                $formData[$name] = $this->formatField($field);
             }
         }
 
@@ -224,7 +260,7 @@ class UserFormController extends Controller
         $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('public')->put($relativePath, $pdfContent);
         $attachmentPath = 'app/public/' . $relativePath;
-        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
+        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfContent, $attachments, $formData, $embeddedImages));
         // Show pdf in browser
         return $pdf->stream('form_submission.pdf');
     }
