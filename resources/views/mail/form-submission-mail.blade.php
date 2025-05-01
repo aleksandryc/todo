@@ -2,7 +2,7 @@
 
 <ul>
     @foreach($data['fields'] as $key => $value)
-    <li><strong>{{ucwords(str_replace('_', ' ', $key)) }}:</strong>{{$value}}</li>
+    <li><strong>{{ucwords(str_replace('_', ' ', $key)) }}: </strong>{{$value}}</li>
     @endforeach
 </ul>
 @if(!empty($data['embeddedImages']))

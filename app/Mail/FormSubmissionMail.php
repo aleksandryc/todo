@@ -12,39 +12,49 @@ use Illuminate\Queue\SerializesModels;
 class FormSubmissionMail extends Mailable
 {
     use Queueable, SerializesModels;
-
     public $data;
-    protected $pdfPath;
-    public $embeddedImages;
-    protected $attachmentList;
-
-
-    public function __construct($pdfPath, $attachments, $formData, $embeddedImages)
+    public $pdfPath;
+    /**
+     * Create a new message instance.
+     */
+    public function __construct($pdfData, $pdfPath)
     {
-        $this->data = $formData;
+        $this->data = $pdfData;
         $this->pdfPath = $pdfPath;
-        $this->embeddedImages = $embeddedImages;
-        $this->attachmentList = $attachments;
     }
 
     /**
-     * Build the message.
-     *
-     * @return $this
+     * Get the message envelope.
      */
+    public function envelope(): Envelope
+    {
+        return new Envelope(
+            subject: 'Form Submission Mail',
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            markdown: 'mail.form-submission-mail',
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
+    }
+
     public function build()
     {
-        $mail = $this->view('mail.form-submission-mail')
-            ->subject('New Form Submitted')
-            ->attach(storage_path($this->pdfPath));
-
-        if(is_array($this->attachmentList)) {
-            foreach ($this->attachmentList as $attachmentPath) {
-                $mail->attach($attachmentPath);
-            }
-        }elseif (is_string($this->attachmentList)) {
-            $mail->attach($$this->attachmentList);
-        }
-        return $mail;
+        return $this->view('mail.form-submission-mail')->subject('New Form Submitted')->attach(storage_path($this->pdfPath));
     }
 }

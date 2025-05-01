@@ -2,74 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SubmittedForm;
-
 use App\Mail\FormSubmissionMail;
-
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class UserFormController extends Controller
 {
-    protected function formatField($value)
-    {
-        $value = e($value);
-        $value = preg_replace(
-            '/((https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:/?#[@!$&\'()*+,;=]*)?)/i',
-            '<a href="$1" target="_blank">$1</a>',
-            $value
-        );
-        $value = preg_replace(
-            '/([a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,})/i',
-            '<a href="mailto:$1">$1</a>',
-            $value
-        );
-
-        $value = preg_replace(
-            '/(\+?\d[\d\s\-]{7,})/',
-            '<a href="tel:$1">$1</a>',
-            $value
-        );
-        return $value;
-    }
-    protected function generateValidationRules(array $fields)
-    {
-        $rules = [];
-        foreach ($fields['fields'] as $name => $field) {
-            if (!empty($field['rules'])) {
-                $rules[$name] = $field['rules'];
-                continue;
-            }
-            //Automated generated rules, if 'rules' dose not exist
-            switch ($field['type']) {
-                case 'radio':
-                case 'select':
-                    $rules[$name] = [
-                        $field['required'] ? 'required' : 'nullable',
-                        Rule::in($field['options']),
-                    ];
-                    break;
-                case 'email':
-                    $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'email'];
-                    break;
-                case 'file':
-                    $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
-                    ? ['required', 'string']
-                    : ['nullable', 'file', 'max:5120'];
-                    break;
-                default:
-                    $rules[$name] = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
-                    break;
-            }
-        }
-        return $rules;
-    }
     protected function getFormConfig($formKey)
     {
         /*
@@ -114,7 +57,7 @@ class UserFormController extends Controller
                     'file' => [
                         'label' => 'Photo',
                         'type' => 'file',
-                        'rules' => ['nullable', 'file', 'max:2048'],
+
                     ],
                 ],
             ],
@@ -145,7 +88,12 @@ class UserFormController extends Controller
                         'type' => 'date', //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
                         'rules' => ['nullable'],
                     ],
-
+                    'logo' => [
+                        'label' => 'Attach a file',
+                        'type' => 'file',
+                        'rules' => ['nullable', 'file', 'max:2048'],
+                        'required' => false,
+                    ],
                     'type' => [
                         'label' => 'Type of course',
                         'type' => 'select',
@@ -173,7 +121,7 @@ class UserFormController extends Controller
     }
     public function show($formKey)
     {
-        // Get for from url
+        // Get form name from url
         $formConfig = $this->getFormConfig($formKey);
 
         if (!$formConfig) {
@@ -191,38 +139,52 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form Not Found');
         }
-        $rules = $this->generateValidationRules($formConfig);
-        $formData = $request->validate($rules);
-        $embeddedImages = []; // To show in pdf
-        $attachments = []; //Attach to mail
-        // Save upload file
+
+        // Validation
+        $rules = [];
         foreach ($formConfig['fields'] as $name => $field) {
+            if (!empty($field['rules'])) {
+                $rules[$name] = $field['rules'];
+                continue;
+            }
+            //Automated generated rules, if 'rules' dose not exist
+            switch ($field['type']) {
+                case 'radio':
+                case 'select':
+                    $rules[$name] = [
+                        $field['required'] ? 'required' : 'nullable',
+                        Rule::in($field['options']),
+                    ];
+                    break;
+                case 'email':
+                    $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'email'];
+                    break;
+                case 'file':
+                    $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
+                    ? ['required', 'string']
+                    : ['nullable', 'file', 'max:5120'];
+                    break;
+                default:
+                    $rules[$name] = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
+                    break;
+            }
+        }
+        $formData = $request->validate($rules);
+        $embeddedImages = [];
+        // Save upload file
+        foreach ($formConfig['fields'] as $name => $field){
             if ($field['type'] === 'file' && $request->hasFile($name)) {
                 $uploadedfile = $request->file($name);
                 $filepath = $uploadedfile->store('attachments', 'public');
-                $fullPath = storage_path('app/public/' . $filepath);
-                $mimeType = File::mimeType($fullPath);
-                $fileSize = File::size($fullPath);
-
                 $formData[$name] = $filepath; //Adding file path to form
 
                 //Prepare embedded image
-                if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
-                    if ($fileSize <= 5 * 1024 * 1024) {
-                        $embeddedImages[$name] = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                        $attachments[] = $fullPath;
-                    } else {
-                        $formData[$name] = Storage::url($filepath); //Link for download
-                    }
-                } else {
-                    if ($fileSize <= 5 * 1024 * 1024) {
-                        $attachments[] = $fullPath;
-                    } else {
-                        $formData[$name] = Storage::url($filepath); //Link for download
-                    }
+                $fullPath = storage_path('app/public/' . $filepath);
+                if (Str::startsWith(File::mimeType($fullPath), 'image/')){
+                    $mimeType = File::mimeType($fullPath);
+                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+                    $embeddedImages[$name] = $base64;
                 }
-            } else {
-                $formData[$name] = $this->formatField($field);
             }
         }
 
@@ -240,10 +202,13 @@ class UserFormController extends Controller
         File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
 
         //store in db
-        SubmittedForm::create([
+        /* Need to create table and model,
+         This code saved json string in db
+         SubmittedForm::create([
             'form_name' => $formConfig['title'] ?? 'Untitled Form',
             'form_json' => $formData,
         ]);
+        */
 
         // Preparation data for PDF
         $pdfData = [
@@ -260,8 +225,9 @@ class UserFormController extends Controller
         $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('public')->put($relativePath, $pdfContent);
         $attachmentPath = 'app/public/' . $relativePath;
-        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfContent, $attachments, $formData, $embeddedImages));
+        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
         // Show pdf in browser
         return $pdf->stream('form_submission.pdf');
+
     }
 }
