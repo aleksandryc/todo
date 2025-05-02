@@ -301,6 +301,7 @@ class UserFormController extends Controller
 
         // Save PDF in file
         $pdfContent = $pdf->output();
+        dd($formData);
         $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
         Storage::disk('public')->put($relativePath, $pdfContent);
         $attachmentPath = 'app/public/' . $relativePath;
