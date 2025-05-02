@@ -1,14 +1,5 @@
-<!doctype html>
-<html>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-</head>
-
-<body>
-<div class="container mx-auto mt-2 w-2/3">
+<div class="mt-4">
     <h1 class="text-3xl text-center">{{ $formConfig['title'] }}</h1>
     <form action="{{ route('forms.submit', $formKey) }}" method="post" enctype="multipart/form-data">
         @csrf
@@ -84,7 +75,3 @@
     </form>
 </div>
 
-
-</body>
-
-</html>

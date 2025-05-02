@@ -19,7 +19,7 @@ class UserFormController extends Controller
     protected function getFormConfig($formKey)
     {
         /*
-        For example, two forms have been added to the controller, but if necessary,
+        For testing, form have been added to the controller, but if necessary,
         they can be moved to a separate file or use a database.
         */
         return match ($formKey) {
@@ -45,7 +45,6 @@ class UserFormController extends Controller
                         'label' => 'Type of Access (Check all that apply) ',
                         'type' => 'checkbox-group',
                         'options' => ['External Email Access', 'External VPN Access',],
-                        'rules' => ['array',],
                         'required' => true,
                     ],
                     'device-used' => [
@@ -81,15 +80,91 @@ class UserFormController extends Controller
                     ]
                 ],
             ],
+            'external-access' => [
+                'title' => 'External Access Request',
+                'description' => 'Use this form to request external access.',
+                'sections' => [
+
+                    // Simple text field
+                    [
+                        'type' => 'field',
+                        'name' => 'employee_name',
+                        'label' => 'Employee Name',
+                        'input_type' => 'text',
+                        'rules' => ['required', 'string', 'max:255'],
+                    ],
+
+                    // Checkbox group
+                    [
+                        'type' => 'group',
+                        'label' => 'Access Type',
+                        'name' => 'access_type',
+                        'input_type' => 'checkbox-group',
+                        'options' => ['VPN', 'Email', 'Remote Desktop'],
+                        'rules' => ['required', 'array'],
+                    ],
+
+                    // Группа с условием (перманентный доступ)
+                    [
+                        'type' => 'group',
+                        'label' => 'Access Duration',
+                        'name' => 'access_duration',
+                        'children' => [
+                            [
+                                'type' => 'field',
+                                'name' => 'permanent_access',
+                                'label' => 'Permanent',
+                                'input_type' => 'checkbox',
+                                'rules' => ['nullable', 'boolean'],
+                            ],
+                            [
+                                'type' => 'field',
+                                'name' => 'date_start',
+                                'label' => 'Start Date',
+                                'input_type' => 'date',
+                                'rules' => ['nullable', 'date'],
+                                'show_if' => ['permanent_access' => false],
+                            ],
+                            [
+                                'type' => 'field',
+                                'name' => 'date_end',
+                                'label' => 'End Date',
+                                'input_type' => 'date',
+                                'rules' => ['nullable', 'date', 'after_or_equal:date_start'],
+                                'show_if' => ['permanent_access' => false],
+                            ],
+                        ],
+                    ],
+
+                    // Селект
+                    [
+                        'type' => 'field',
+                        'name' => 'access_level',
+                        'label' => 'Access Level',
+                        'input_type' => 'select',
+                        'options' => ['Basic', 'Admin', 'Full'],
+                        'rules' => ['required', 'in:Basic,Admin,Full'],
+                    ],
+
+                    // Загрузка файлов
+                    [
+                        'type' => 'field',
+                        'name' => 'supporting_documents',
+                        'label' => 'Upload Supporting Documents',
+                        'input_type' => 'file',
+                        'rules' => ['nullable', 'file', 'max:5120'],
+                    ],
+                ],
+            ],
             'new-employee' => [
                 'title' => 'Add New Employee Form',
+                'description' => 'Use this form to request external access.',
                 'fields' => [
                     'name' => [
                         'label' => 'Full name',
                         'type' => 'text',
                         'rules' => ['required', 'max:255'],
                         'placeholder' => 'Enter Full name',
-                        'required' => true,
                     ],
                     'shift' => [
                         'label' => 'Shift',
@@ -103,14 +178,12 @@ class UserFormController extends Controller
                         'type' => 'tel',
                         'rules' => ['required', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'],
                         'placeholder' => 'Enter phone number',
-                        'required' => false,
                     ],
                     'status' => [
                         'label' => 'Active',
                         'type' => 'radio',
                         'options' => ['Yes', 'No'],
                         'rules' => ['required'],
-                        'required' => true,
                     ],
                     'supervisor' => [
                         'label' => 'Supervisor',
@@ -121,8 +194,7 @@ class UserFormController extends Controller
                     'file' => [
                         'label' => 'Photo',
                         'type' => 'file',
-                        'rules' => ['required', 'max:10255'],
-                        'required' => true,
+
                     ],
                 ],
             ],
@@ -181,32 +253,15 @@ class UserFormController extends Controller
                     ],
                 ],
             ],
-            default => abort(404),
         };
     }
-    public function show($formKey)
-    {
-        // Get form name from url
-        $formConfig = $this->getFormConfig($formKey);
 
-        if (!$formConfig) {
-            abort(404, 'Form not found');
-        }
-
-        return view('forms.show', [
-            'formKey' => $formKey,
-            'formConfig' => $formConfig,
-        ]);
-    }
-    public function submit(Request $request, $formKey)
+    protected function rulesValidation($data)
     {
-        $formConfig = $this->getFormConfig($formKey);
-        if (!$formConfig) {
-            abort(404, 'Form Not Found');
-        }
-        // Validation
+        /* Received a form configuration and add rules by default if not specified.
+        */
         $rules = [];
-        foreach ($formConfig['fields'] as $name => $field) {
+        foreach ($data['fields'] as $name => $field) {
             if (!empty($field['rules'])) {
                 $rules[$name] = $field['rules'];
                 continue;
@@ -225,8 +280,8 @@ class UserFormController extends Controller
                     break;
                 case 'file':
                     $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
-                    ? ['required', 'string']
-                    : ['nullable', 'file', 'max:5120'];
+                        ? ['required', 'string']
+                        : ['nullable', 'file', 'max:5120'];
                     break;
                 case 'checkbox':
                     $rules[$name] = ['nullable'];
@@ -239,75 +294,35 @@ class UserFormController extends Controller
                     break;
             }
         }
-        $formData = $request->validate($rules);
-        $embeddedImages = [];
+        return $rules;
+    }
 
-        // Date interval in one field
-        if(isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
-            $formData['date-range'] = 'From ' . $formData['date-range-start'] .  ' to ' . $formData['date-range-end'];
-            unset($formData['date-range-start'], $formData['date-range-end']);
+    public function show($formKey)
+    {
+        // Get form name from url
+        $formConfig = $this->getFormConfig($formKey);
+
+        if (!$formConfig) {
+            abort(404, 'Form not found');
         }
 
-        // Save upload file
-        foreach ($formConfig['fields'] as $name => $field){
-            if (isArray($field) && empty($field)) {
-                unset($formData[$name]);
-            }
-            if ($field['type'] === 'file' && $request->hasFile($name)) {
-                $uploadedfile = $request->file($name);
-                $filepath = $uploadedfile->store('attachments', 'public');
-                $formData[$name] = $filepath; //Adding file path to form
-
-                //Prepare embedded image
-                $fullPath = storage_path('app/public/' . $filepath);
-                if (Str::startsWith(File::mimeType($fullPath), 'image/')){
-                    $mimeType = File::mimeType($fullPath);
-                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                    $embeddedImages[$name] = $base64;
-                }
-            }
-        }
-
-        //Stoere in JSON
-        $jsonPath = storage_path('app/public/forms/');
-        $formDataWithName = [
-            'form_name' => $formConfig['title'] ?? 'untitled',
-            'submitted_at' => now()->toDayDateTimeString(),
-            'fields' => $formData
-        ];
-        if (!File::exists($jsonPath)) {
-            File::makeDirectory($jsonPath, 0755, true);
-        }
-        $fileName = 'form_' . now()->format('Ymd_His') . '.json';
-        File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
-
-        //store in db
-
-         SubmittedForm::create([
-            'form_name' => $formConfig['title'] ?? 'Untitled Form',
-            'form_json' => $formData,
+        return view('forms.show', [
+            'formKey' => $formKey,
+            'formConfig' => $formConfig,
         ]);
+    }
 
-
-        // Preparation data for PDF
-        $pdfData = [
-            'title' => $formConfig['title'],
-            'fields' => $formData,
-            'embeddedImages' => $embeddedImages,
-        ];
-        // Generate PDF
-        $pdf = Pdf::loadView('forms.pdf', $pdfData);
-        $pdf->setOptions(['isRemoteEnabled' => true]);
-
-        // Save PDF in file
-        $pdfContent = $pdf->output();
+    public function submit(Request $request, $formKey)
+    {
+        // Retrive for configuration
+        $formConfig = $this->getFormConfig($formKey);
+        if (!$formConfig) {
+            abort(404, 'Form Not Found');
+        }
+        // Validation
+        $rules = $this->rulesValidation($formConfig);
+        // Geting form data after validation
+        $formData = $request->validate($rules);
         dd($formData);
-        $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
-        Storage::disk('public')->put($relativePath, $pdfContent);
-        $attachmentPath = 'app/public/' . $relativePath;
-        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
-        // Show pdf in browser
-        return $pdf->stream('form_submission.pdf');
-
     }
 }
