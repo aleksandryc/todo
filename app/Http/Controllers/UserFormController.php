@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\FormSubmissionMail;
+use App\Models\SubmittedForm;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+
+use function PHPUnit\Framework\isArray;
 
 class UserFormController extends Controller
 {
@@ -20,6 +23,64 @@ class UserFormController extends Controller
         they can be moved to a separate file or use a database.
         */
         return match ($formKey) {
+            'external-access-request' => [
+                'title' => 'External Access Request',
+                'description' => 'To request an employee be granted external access to company information when outside of Elias Woodwork’s facilities please fill in the following and submit to HR for approval. If a mobile phone or laptop is required, please note that in the devices section. ',
+                'fields' => [
+                    'supervisor' => [
+                        'label' => 'Supervisor',
+                        'type' => 'text',
+                        'rules' => ['required', 'max:255'],
+                        'placeholder' => 'Enter Full name',
+                        'required' => true,
+                    ],
+                    'employee' => [
+                        'label' => 'Employee',
+                        'type' => 'text',
+                        'rules' => ['required', 'max:255'],
+                        'placeholder' => 'Enter Full name',
+                        'required' => true,
+                    ],
+                    'access-type' => [
+                        'label' => 'Type of Access (Check all that apply) ',
+                        'type' => 'checkbox-group',
+                        'options' => ['External Email Access', 'External VPN Access',],
+                        'rules' => ['array',],
+                        'required' => true,
+                    ],
+                    'device-used' => [
+                        'label' => 'Devices being used (MFA requires mobile phone): ',
+                        'type' => 'text',
+                        'rules' => ['required', 'max:255'],
+                        'placeholder' => 'MFA requires mobile phone',
+                        'required' => true,
+                    ],
+                    'date-range-start' => [
+                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
+                        'type' => 'date',
+                        'rules' => ['nullable', 'date'],
+
+                    ],
+                    'date-range-end' => [
+                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
+                        'type' => 'date',
+                        'rules' => ['nullable', 'date', 'after_or_equal:date-range-start'],
+                        'required' => false,
+                    ],
+                    'date-range-perm' => [
+                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
+                        'type' => 'checkbox',
+                        'options' => '“Permanent”',
+                        'rules' => ['boolean', ],
+                        'required' => false,
+                    ],
+                    'reason' => [
+                        'label' => 'Reason (Provide a brief description of why this is needed)',
+                        'type' => 'textarea',
+                        'required' => true,
+                    ]
+                ],
+            ],
             'new-employee' => [
                 'title' => 'Add New Employee Form',
                 'fields' => [
@@ -28,6 +89,7 @@ class UserFormController extends Controller
                         'type' => 'text',
                         'rules' => ['required', 'max:255'],
                         'placeholder' => 'Enter Full name',
+                        'required' => true,
                     ],
                     'shift' => [
                         'label' => 'Shift',
@@ -41,12 +103,14 @@ class UserFormController extends Controller
                         'type' => 'tel',
                         'rules' => ['required', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'],
                         'placeholder' => 'Enter phone number',
+                        'required' => false,
                     ],
                     'status' => [
                         'label' => 'Active',
                         'type' => 'radio',
                         'options' => ['Yes', 'No'],
                         'rules' => ['required'],
+                        'required' => true,
                     ],
                     'supervisor' => [
                         'label' => 'Supervisor',
@@ -57,7 +121,8 @@ class UserFormController extends Controller
                     'file' => [
                         'label' => 'Photo',
                         'type' => 'file',
-
+                        'rules' => ['required', 'max:10255'],
+                        'required' => true,
                     ],
                 ],
             ],
@@ -139,7 +204,6 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form Not Found');
         }
-
         // Validation
         $rules = [];
         foreach ($formConfig['fields'] as $name => $field) {
@@ -164,6 +228,12 @@ class UserFormController extends Controller
                     ? ['required', 'string']
                     : ['nullable', 'file', 'max:5120'];
                     break;
+                case 'checkbox':
+                    $rules[$name] = ['nullable'];
+                    break;
+                case 'checkbox-group':
+                    $rules[$name] = ['nullable', 'array'];
+                    break;
                 default:
                     $rules[$name] = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
                     break;
@@ -171,8 +241,18 @@ class UserFormController extends Controller
         }
         $formData = $request->validate($rules);
         $embeddedImages = [];
+
+        // Date interval in one field
+        if(isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
+            $formData['date-range'] = 'From ' . $formData['date-range-start'] .  ' to ' . $formData['date-range-end'];
+            unset($formData['date-range-start'], $formData['date-range-end']);
+        }
+
         // Save upload file
         foreach ($formConfig['fields'] as $name => $field){
+            if (isArray($field) && empty($field)) {
+                unset($formData[$name]);
+            }
             if ($field['type'] === 'file' && $request->hasFile($name)) {
                 $uploadedfile = $request->file($name);
                 $filepath = $uploadedfile->store('attachments', 'public');
@@ -202,13 +282,12 @@ class UserFormController extends Controller
         File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
 
         //store in db
-        /* Need to create table and model,
-         This code saved json string in db
+
          SubmittedForm::create([
             'form_name' => $formConfig['title'] ?? 'Untitled Form',
             'form_json' => $formData,
         ]);
-        */
+
 
         // Preparation data for PDF
         $pdfData = [

@@ -34,7 +34,11 @@
                 <a href="{{ asset('storage/'.$value) }}">{{ asset('storage/'.$value) }}</a>
 
                 @else
+                @if (is_array($value))
+                {{ implode(',', $value)}}
+                @else
                 {{ htmlspecialchars($value) }}
+                @endif
                 @endif
             </td>
         </tr>
