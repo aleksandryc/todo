@@ -71,6 +71,13 @@ class UserFormController extends Controller
                         'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
                         'type' => 'date',
                         'rules' => ['nullable', 'date'],
+                        'conditional-rules' => [
+                            'when' => [
+                                'field' => 'date-range-perm',
+                                'value' => false,
+                                'rules' => ['required', 'date'],
+                            ],
+                        ],
 
                     ],
                     'date-range-end' => [
@@ -78,6 +85,13 @@ class UserFormController extends Controller
                         'type' => 'date',
                         'rules' => ['nullable', 'date', 'after_or_equal:date-range-start'],
                         'required' => false,
+                        'conditional-rules' => [
+                            'when' => [
+                                'field' => 'date-range-perm',
+                                'value' => false,
+                                'rules' => ['required', 'date'],
+                            ],
+                        ],
                     ],
                     'date-range-perm' => [
                         'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
@@ -192,7 +206,7 @@ class UserFormController extends Controller
             default => abort(404),
         };
     }
-    protected function extractFieldsWithTpype($formConfig)
+    protected function extractFieldsWithType($formConfig)
     {
         $result = [];
 
@@ -203,7 +217,7 @@ class UserFormController extends Controller
 
         foreach ($formConfig as $key => $value) {
             if (is_array($value) && $key !== 'fields') {
-                $result = array_merge($result, $this->extractFieldsWithTpype($value));
+                $result = array_merge($result, $this->extractFieldsWithType($value));
             }
         }
         return $result;
@@ -232,20 +246,84 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form not found');
         };
-        dump($this->extractFieldsWithTpype($formConfig));
+        dump($this->extractFieldsWithType($formConfig));
         return view('forms.show', [
             'formKey' => $formKey,
             'formConfig' => $formConfig,
-            'formComponents' => $this->extractFieldsWithTpype($formConfig),
+            'formComponents' => $this->extractFieldsWithType($formConfig),
         ]);
+    }
+
+    protected function validateRules ($formData, $formConfig)
+    {
+        $rules = [];
+        foreach ($formConfig['rules'] as $name => $field) {
+            $fieldRules = [];
+            if (!empty($field['rules'])) {
+                $fieldRules = $field['rules'];
+            } else {
+                //Automated generated rules, if 'rules' dose not exist
+                switch ($field['type']) {
+                    case 'radio':
+                        $fieldRules = ['nullable', 'boolean'];
+                        break;
+                    case 'select':
+                        $fieldRules = [
+                            $field['required'] ? 'required' : 'nullable',
+                            Rule::in($field['options']),
+                        ];
+                        break;
+                    case 'email':
+                        $fieldRules = [$field['required'] ? 'required' : 'nullable', 'email'];
+                        break;
+                    case 'file':
+                        $fieldRules = isset($field['required']) && $field['required']
+                        ? ['required', 'string']
+                        : ['nullable', 'file', 'max:5120'];
+                        break;
+                    case 'checkbox':
+                        $fieldRules = ['nullable', 'boolean'];
+                        break;
+                    case 'checkbox-group':
+                        $fieldRules = ['nullable', 'array'];
+                        break;
+                    case 'date':
+                        $fieldRules = $field['require'] ?? false ? ['required', 'date'] : ['nullable', 'date'];
+                        ;
+                        break;
+                    default:
+                        $fieldRules = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
+                        break;
+                }
+            }
+            //Add conditional rules if applicable
+            if (isset($field['conditional-rules']['when'])) {
+                $condition = $field['conditional-rules']['when'];
+                $dependentField = $condition['field'];
+                $dependentValue = $condition['value'];
+                $actualValue = isset($formData[$dependentField]) ? $formData[$dependentField] : null;
+
+                //Apply conditional rules
+                if ($actualValue === $dependentValue) {
+                    $fieldRules = array_merge($fieldRules, $condition['rules']);
+                }
+            }
+
+            //Delet duplicates
+            $fieldRules = array_unique($fieldRules, SORT_REGULAR);
+
+            //Add rule for field
+            $rules[$name] = $fieldRules;
+        }
+        return $rules;
     }
     public function submit(Request $request, $formKey)
     {
-        $formConfig = $this->getFormConfig($formKey);
+        $formConfig = $this->extractFieldsWithType($this->getFormConfig($formKey));
         if (!$formConfig) {
             abort(404, 'Form Not Found');
         }
-        dd($request->post());
+        dd($request->post(), $formConfig);
         // Validation
         $rules = [];
         foreach ($formConfig['fields'] as $name => $field) {
