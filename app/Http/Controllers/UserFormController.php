@@ -12,6 +12,9 @@ use Mail;
 use Storage;
 use Str;
 
+use function Pest\Laravel\options;
+use function PHPSTORM_META\type;
+
 class UserFormController extends Controller
 {
     protected function getFormConfig($formKey)
@@ -47,25 +50,40 @@ class UserFormController extends Controller
                         'name' => 'access-type',
                         'label' => 'Type of Access (Check all that apply) ',
                         'type' => 'checkbox-group',
-                        'options' => ['External Email Access', 'External VPN Access',],
+                        'options' => ['External Email Access', 'External VPN Access'],
+                        'rules' => ['required', 'array', Rule::in(['External Email Access', 'External VPN Access'])],
                         'required' => true,
                     ],
                     [
-                        'External Email Access' =>
+                        'Device-used-email' =>
                         [
                             'label' => 'Devices being used (MFA requires mobile phone): ',
                             'type' => 'text',
                             'rules' => ['required', 'max:255'],
                             'placeholder' => 'MFA requires mobile phone',
                             'required' => true,
+                            'conditional-rules' => [
+                            'when' => [
+                                'field' => 'access-type',
+                                'value' => 'External Email Access',
+                                'rules' => ['required', 'max:255'],
+                            ],
                         ],
-                        'External VPN Access' =>
+                        ],
+                        'device-used-vpn' =>
                         [
                             'label' => 'Devices being used: ',
                             'type' => 'text',
                             'rules' => ['required', 'max:255'],
                             'placeholder' => 'MFA requires mobile phone',
                             'required' => true,
+                            'conditional-rules' => [
+                            'when' => [
+                                'field' => 'access-type',
+                                'value' => 'External VPN Access',
+                                'rules' => ['required', 'max:255'],
+                            ],
+                        ],
                         ]
                     ],
                     'date-range-start' => [
@@ -279,21 +297,34 @@ class UserFormController extends Controller
                         break;
                     case 'file':
                         $fieldRules = isset($field['required']) && $field['required']
-                        ? ['required', 'string']
+                        ? ['required', 'file', 'max:5120']
                         : ['nullable', 'file', 'max:5120'];
                         break;
                     case 'checkbox':
                         $fieldRules = ['nullable', 'boolean'];
                         break;
                     case 'checkbox-group':
-                        $fieldRules = ['nullable', 'array'];
+                        $fieldRules = ['nullable', 'array', Rule::in($field['options'])];
                         break;
                     case 'date':
-                        $fieldRules = $field['required'] ?? false ? ['required', 'date'] : ['nullable', 'date'];
+                        $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'date'] : ['nullable', 'date'];
                         ;
                         break;
+                    case 'textarea':
+                        $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'string', 'max:1000'] : ['nullable', 'string', 'max:1000'];
+                        break;
+                    case 'tel':
+                        $fieldRules = isset($field['required']) && $field['required']
+                        ? ['required',  'regex:/^\+?[0-9\s\-\(\)]{7,20}$/']
+                        : ['nullable', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'];
+                        break;
+                    case 'url':
+                        $fieldRules = isset($field['required']) && $field['required']
+                        ? ['required',  'url']
+                        : ['nullable', 'url'];
+                        break;
                     default:
-                        $fieldRules = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
+                    $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'string', 'max:255'] : ['nullable', 'string', 'max:255'];
                         break;
                 }
             }
@@ -302,8 +333,17 @@ class UserFormController extends Controller
                 $condition = $field['conditional-rules']['when'];
                 $dependentField = $condition['field'];
                 $dependentValue = $condition['value'];
-                $actualValue = isset($formData[$dependentField]) ? $formData[$dependentField] : null;
 
+                //For chexbox-group
+                $actualValue = isset($formData[$dependentField]) ? $formData[$dependentField] : null;
+                if (is_array($actualValue)) {
+                    $conditionMet = in_array($dependentValue, $actualValue);
+                } else {
+                    $conditionMet = $actualValue === $dependentValue;
+                }
+                if ($conditionMet) {
+                    $fieldRules = array_merge($fieldRules, $condition['rules']);
+                }
                 //Apply conditional rules
                 if ($actualValue === $dependentValue) {
                     $fieldRules = array_merge($fieldRules, $condition['rules']);
@@ -320,6 +360,8 @@ class UserFormController extends Controller
     }
     public function submit(Request $request, $formKey)
     {
+        $embeddedImages = [];
+        $attachments = [];
         $formConfig = $this->extractFieldsWithType($this->getFormConfig($formKey));
         if (!$formConfig) {
             abort(404, 'Form Not Found');
@@ -332,12 +374,6 @@ class UserFormController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        dd($validator);
-
-        $formData = $request->validate($this->validateRules($request->post(), $formConfig));
-        $embeddedImages = [];
-        $attachments = [];
-
         // Date interval in one field
         if (isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
             $formData['date-range'] = 'From ' . $formData['date-range-start'] .  ' to ' . $formData['date-range-end'];
@@ -345,7 +381,7 @@ class UserFormController extends Controller
         }
 
         // Save upload file
-        foreach ($formConfig['fields'] as $name => $field) {
+        foreach ($formConfig as $name => $field) {
             if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($formData[$name])) {
                 unset($formData[$name]);
             }
