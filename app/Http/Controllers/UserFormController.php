@@ -380,6 +380,7 @@ class UserFormController extends Controller
             unset($formData['date-range-start'], $formData['date-range-end']);
         }
 
+        dd($formData);
         // Save upload file
         foreach ($formConfig as $name => $field) {
             if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($formData[$name])) {
