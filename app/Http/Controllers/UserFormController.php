@@ -49,12 +49,23 @@ class UserFormController extends Controller
                         'options' => ['External Email Access', 'External VPN Access',],
                         'required' => true,
                     ],
-                    'device-used' => [
-                        'label' => 'Devices being used (MFA requires mobile phone): ',
-                        'type' => 'text',
-                        'rules' => ['required', 'max:255'],
-                        'placeholder' => 'MFA requires mobile phone',
-                        'required' => true,
+                    [
+                        'External Email Access' =>
+                        [
+                            'label' => 'Devices being used (MFA requires mobile phone): ',
+                            'type' => 'text',
+                            'rules' => ['required', 'max:255'],
+                            'placeholder' => 'MFA requires mobile phone',
+                            'required' => true,
+                        ],
+                        'External VPN Access' =>
+                        [
+                            'label' => 'Devices being used: ',
+                            'type' => 'text',
+                            'rules' => ['required', 'max:255'],
+                            'placeholder' => 'MFA requires mobile phone',
+                            'required' => true,
+                        ]
                     ],
                     'date-range-start' => [
                         'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
@@ -72,7 +83,7 @@ class UserFormController extends Controller
                         'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
                         'type' => 'checkbox',
                         'options' => '“Permanent”',
-                        'rules' => ['boolean', ],
+                        'rules' => ['boolean',],
                         'required' => false,
                     ],
                     'reason' => [
@@ -181,6 +192,38 @@ class UserFormController extends Controller
             default => abort(404),
         };
     }
+    protected function extractFieldsWithTpype($formConfig)
+    {
+        $result = [];
+
+        //Ckeck for key 'type' in array
+        if (isset($formConfig['fields']) && is_array($formConfig['fields'])) {
+            $result = $this->extractFieldsRecursively($formConfig['fields']);
+        }
+
+        foreach ($formConfig as $key => $value) {
+            if (is_array($value) && $key !== 'fields') {
+                $result = array_merge($result, $this->extractFieldsWithTpype($value));
+            }
+        }
+        return $result;
+    }
+
+    protected function extractFieldsRecursively($fields)
+    {
+        $result = [];
+
+        foreach ($fields as $key => $value) {
+            if (is_array($value)) {
+                if (isset($value['type'])) {
+                    $result[$key] = $value;
+                }
+                $result = array_merge($result, $this->extractFieldsRecursively($value));
+            }
+        }
+
+        return $result;
+    }
     public function show($formKey)
     {
         // Get form name from url
@@ -188,11 +231,12 @@ class UserFormController extends Controller
 
         if (!$formConfig) {
             abort(404, 'Form not found');
-        }
-        dd($formConfig);
+        };
+        dump($this->extractFieldsWithTpype($formConfig));
         return view('forms.show', [
             'formKey' => $formKey,
             'formConfig' => $formConfig,
+            'formComponents' => $this->extractFieldsWithTpype($formConfig),
         ]);
     }
     public function submit(Request $request, $formKey)
@@ -201,7 +245,7 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form Not Found');
         }
-
+        dd($request->post());
         // Validation
         $rules = [];
         foreach ($formConfig['fields'] as $name => $field) {
@@ -223,8 +267,8 @@ class UserFormController extends Controller
                     break;
                 case 'file':
                     $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
-                    ? ['required', 'string']
-                    : ['nullable', 'file', 'max:5120'];
+                        ? ['required', 'string']
+                        : ['nullable', 'file', 'max:5120'];
                     break;
                 case 'checkbox':
                     $rules[$name] = ['nullable'];
@@ -242,14 +286,14 @@ class UserFormController extends Controller
         $attachments = [];
 
         // Date interval in one field
-        if(isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
+        if (isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
             $formData['date-range'] = 'From ' . $formData['date-range-start'] .  ' to ' . $formData['date-range-end'];
             unset($formData['date-range-start'], $formData['date-range-end']);
         }
 
         // Save upload file
-        foreach ($formConfig['fields'] as $name => $field){
-            if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($formData[$name])){
+        foreach ($formConfig['fields'] as $name => $field) {
+            if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($formData[$name])) {
                 unset($formData[$name]);
             }
             if ($field['type'] === 'file' && $request->hasFile($name)) {
@@ -261,7 +305,7 @@ class UserFormController extends Controller
                 $attachments[] = $fullPath;
 
                 //Prepare embedded image
-                if (Str::startsWith(File::mimeType($fullPath), 'image/')){
+                if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
                     $mimeType = File::mimeType($fullPath);
                     $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
                     $embeddedImages[$name] = $base64;
