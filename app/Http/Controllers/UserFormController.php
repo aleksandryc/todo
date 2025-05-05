@@ -6,6 +6,7 @@ use App\Mail\UserForms\FormSubmissionMail;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Mail;
 use Storage;
@@ -246,7 +247,6 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form not found');
         };
-        dump($this->extractFieldsWithType($formConfig));
         return view('forms.show', [
             'formKey' => $formKey,
             'formConfig' => $formConfig,
@@ -257,8 +257,9 @@ class UserFormController extends Controller
     protected function validateRules ($formData, $formConfig)
     {
         $rules = [];
-        foreach ($formConfig['rules'] as $name => $field) {
+        foreach ($formConfig as $name => $field) {
             $fieldRules = [];
+            //Use existing rules
             if (!empty($field['rules'])) {
                 $fieldRules = $field['rules'];
             } else {
@@ -288,7 +289,7 @@ class UserFormController extends Controller
                         $fieldRules = ['nullable', 'array'];
                         break;
                     case 'date':
-                        $fieldRules = $field['require'] ?? false ? ['required', 'date'] : ['nullable', 'date'];
+                        $fieldRules = $field['required'] ?? false ? ['required', 'date'] : ['nullable', 'date'];
                         ;
                         break;
                     default:
@@ -323,43 +324,17 @@ class UserFormController extends Controller
         if (!$formConfig) {
             abort(404, 'Form Not Found');
         }
-        dd($request->post(), $formConfig);
-        // Validation
-        $rules = [];
-        foreach ($formConfig['fields'] as $name => $field) {
-            if (!empty($field['rules'])) {
-                $rules[$name] = $field['rules'];
-                continue;
-            }
-            //Automated generated rules, if 'rules' dose not exist
-            switch ($field['type']) {
-                case 'radio':
-                case 'select':
-                    $rules[$name] = [
-                        $field['required'] ? 'required' : 'nullable',
-                        Rule::in($field['options']),
-                    ];
-                    break;
-                case 'email':
-                    $rules[$name] = [$field['required'] ? 'required' : 'nullable', 'email'];
-                    break;
-                case 'file':
-                    $rules[$name] = $rules[$name] = isset($field['required']) && $field['required']
-                        ? ['required', 'string']
-                        : ['nullable', 'file', 'max:5120'];
-                    break;
-                case 'checkbox':
-                    $rules[$name] = ['nullable'];
-                    break;
-                case 'checkbox-group':
-                    $rules[$name] = ['nullable', 'array'];
-                    break;
-                default:
-                    $rules[$name] = $field['required'] ? ['required', 'string'] : ['nullable', 'string'];
-                    break;
-            }
+        $formData = $request->all();
+        $rules = $this->validateRules($formData, $formConfig);
+
+        $validator = Validator::make($formData, $rules);
+        if ($validator->fails()){
+            return redirect()->back()->withErrors($validator)->withInput();
         }
-        $formData = $request->validate($rules);
+
+        dd($validator);
+
+        $formData = $request->validate($this->validateRules($request->post(), $formConfig));
         $embeddedImages = [];
         $attachments = [];
 
