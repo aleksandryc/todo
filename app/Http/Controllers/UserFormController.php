@@ -12,9 +12,6 @@ use Mail;
 use Storage;
 use Str;
 
-use function Pest\Laravel\options;
-use function PHPSTORM_META\type;
-
 class UserFormController extends Controller
 {
     protected function getFormConfig($formKey)
@@ -24,201 +21,236 @@ class UserFormController extends Controller
         they can be moved to a separate file or use a database.
         */
         return match ($formKey) {
-            'external-access-request' => [
-                'title' => 'External Access Request',
-                'description' => 'To request an employee be granted external access to company information when outside of Elias Woodwork’s facilities please fill in the following and submit to HR for approval. If a mobile phone or laptop is required, please note that in the devices section. ',
-                'fields' => [
-                    'names-group' => [
-                        'supervisor' => [
-                            'name' => 'supervisor',
-                            'label' => 'Supervisor',
-                            'type' => 'text',
-                            'rules' => ['required', 'max:255'],
-                            'placeholder' => 'Enter Full name',
-                            'required' => true,
+            "external-access-request" => [
+                "title" => "External Access Request",
+                "description" =>
+                "To request an employee be granted external access to company information when outside of Elias Woodwork’s facilities please fill in the following and submit to HR for approval. If a mobile phone or laptop is required, please note that in the devices section. ",
+                "fields" => [
+                    "names-group" => [
+                        "supervisor" => [
+                            "name" => "supervisor",
+                            "label" => "Supervisor",
+                            "type" => "text",
+                            "rules" => ["required", "max:255"],
+                            "placeholder" => "Enter Full name",
+                            "required" => true,
                         ],
-                        'employee' => [
-                            'name' => 'employee',
-                            'label' => 'Employee',
-                            'type' => 'text',
-                            'rules' => ['required', 'max:255'],
-                            'placeholder' => 'Enter Full name',
-                            'required' => true,
+                        "employee" => [
+                            "name" => "employee",
+                            "label" => "Employee",
+                            "type" => "text",
+                            "rules" => ["required", "max:255"],
+                            "placeholder" => "Enter Full name",
+                            "required" => true,
                         ],
                     ],
-                    'access-type' => [
-                        'name' => 'access-type',
-                        'label' => 'Type of Access (Check all that apply) ',
-                        'type' => 'checkbox-group',
-                        'options' => ['External Email Access', 'External VPN Access'],
-                        'rules' => ['required', 'array', Rule::in(['External Email Access', 'External VPN Access'])],
-                        'required' => true,
+                    "access-type" => [
+                        "name" => "access-type",
+                        "label" => "Type of Access (Check all that apply) ",
+                        "type" => "checkbox-group",
+                        "options" => [
+                            "External Email Access",
+                            "External VPN Access",
+                        ],
+                        "rules" => [
+                            "required",
+                            "array",
+                            Rule::in([
+                                "External Email Access",
+                                "External VPN Access",
+                            ]),
+                        ],
+                        "required" => true,
                     ],
                     [
-                        'Device-used-email' =>
-                        [
-                            'label' => 'Devices being used (MFA requires mobile phone): ',
-                            'type' => 'text',
-                            'rules' => ['required', 'max:255'],
-                            'placeholder' => 'MFA requires mobile phone',
-                            'required' => true,
-                            'conditional-rules' => [
-                            'when' => [
-                                'field' => 'access-type',
-                                'value' => 'External Email Access',
-                                'rules' => ['required', 'max:255'],
-                            ],
-                        ],
-                        ],
-                        'device-used-vpn' =>
-                        [
-                            'label' => 'Devices being used: ',
-                            'type' => 'text',
-                            'rules' => ['required', 'max:255'],
-                            'placeholder' => 'MFA requires mobile phone',
-                            'required' => true,
-                            'conditional-rules' => [
-                            'when' => [
-                                'field' => 'access-type',
-                                'value' => 'External VPN Access',
-                                'rules' => ['required', 'max:255'],
-                            ],
-                        ],
-                        ]
-                    ],
-                    'date-range-start' => [
-                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
-                        'type' => 'date',
-                        'rules' => ['nullable', 'date'],
-                        'conditional-rules' => [
-                            'when' => [
-                                'field' => 'date-range-perm',
-                                'value' => false,
-                                'rules' => ['required', 'date'],
-                            ],
-                        ],
+                        "Device-used-email" => [
+                            "label" =>
+                            "Devices being used (MFA requires mobile phone): ",
+                            "type" => "text",
 
-                    ],
-                    'date-range-end' => [
-                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
-                        'type' => 'date',
-                        'rules' => ['nullable', 'date', 'after_or_equal:date-range-start'],
-                        'required' => false,
-                        'conditional-rules' => [
-                            'when' => [
-                                'field' => 'date-range-perm',
-                                'value' => false,
-                                'rules' => ['required', 'date'],
+                            "placeholder" => "MFA requires mobile phone",
+                            "conditional-rules" => [
+                                "when" => [
+                                    "field" => "access-type",
+                                    "value" => "External Email Access",
+                                    "rules" => ["required", "max:255"],
+                                ],
+                            ],
+                        ],
+                        "device-used-vpn" => [
+                            "label" => "Devices being used: ",
+                            "type" => "text",
+
+                            "placeholder" => "MFA requires mobile phone",
+                            "conditional-rules" => [
+                                "when" => [
+                                    "field" => "access-type",
+                                    "value" => "External VPN Access",
+                                    "rules" => ["required", "max:255"],
+                                ],
                             ],
                         ],
                     ],
-                    'date-range-perm' => [
-                        'label' => 'Timeframe of approval (Provide start and end dates or “Permanent”) ',
-                        'type' => 'checkbox',
-                        'options' => '“Permanent”',
-                        'rules' => ['boolean',],
-                        'required' => false,
+                    "date-range-start" => [
+                        "label" =>
+                        "Timeframe of approval (Provide start) ",
+                        "type" => "date",
+                        "rules" => ["nullable", "date"],
+                        "conditional-rules" => [
+                            "when" => [
+                                "field" => "date-range-perm",
+                                "value" => false,
+                                "rules" => ["required", "date"],
+                            ],
+                        ],
                     ],
-                    'reason' => [
-                        'label' => 'Reason (Provide a brief description of why this is needed)',
-                        'type' => 'textarea',
-                        'required' => true,
-                    ]
-                ],
-            ],
-            'new-employee' => [
-                'title' => 'Add New Employee Form',
-                'fields' => [
-                    'name' => [
-                        'label' => 'Full name',
-                        'type' => 'text',
-                        'rules' => ['required', 'max:255'],
-                        'placeholder' => 'Enter Full name',
+                    "date-range-end" => [
+                        "label" =>
+                        "Timeframe of approval (Provide end dates) ",
+                        "type" => "date",
+                        "rules" => [
+                            "nullable",
+                            "date",
+                            "after_or_equal:date-range-start",
+                        ],
+                        "required" => false,
+                        "conditional-rules" => [
+                            "when" => [
+                                "field" => "date-range-perm",
+                                "value" => false,
+                                "rules" => ["required", "date"],
+                            ],
+                        ],
                     ],
-                    'shift' => [
-                        'label' => 'Shift',
-                        'type' => 'select',
-                        'options' => ['Morden Day', 'Morden Evening', 'Office', 'Winkler Day', 'Winkler Evening', 'Driver', 'Cleaning'],
-                        'rules' => ['required'],
-                        'required' => true,
+                    "date-range-perm" => [
+                        "label" =>
+                        "Timeframe of approval (or “Permanent”) ",
+                        "type" => "checkbox",
+                        "options" => "“Permanent”",
+                        "rules" => ["boolean"],
+                        "required" => false,
                     ],
-                    'phone' => [
-                        'label' => 'Phone',
-                        'type' => 'tel',
-                        'rules' => ['required', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'],
-                        'placeholder' => 'Enter phone number',
-                    ],
-                    'status' => [
-                        'label' => 'Active',
-                        'type' => 'radio',
-                        'options' => ['Yes', 'No'],
-                        'rules' => ['required'],
-                    ],
-                    'supervisor' => [
-                        'label' => 'Supervisor',
-                        'type' => 'text',
-                        'rules' => ['required', 'max:255'],
-                        'placeholder' => 'Enter Full name of supervisor',
-                    ],
-                    'file' => [
-                        'label' => 'Photo',
-                        'type' => 'file',
-
+                    "reason" => [
+                        "label" =>
+                        "Reason (Provide a brief description of why this is needed)",
+                        "type" => "textarea",
+                        "required" => true,
                     ],
                 ],
             ],
-            'new-course' => [
-                'title' => 'Add New Course Form',
-                'fields' => [
-                    'email' => [
-                        'label' => 'Email',
-                        'type' => 'email',
-                        'rules' => ['required', 'email', 'regex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/'],
-                        'placeholder' => 'Enter email',
+            "new-employee" => [
+                "title" => "Add New Employee Form",
+                "fields" => [
+                    "name" => [
+                        "label" => "Full name",
+                        "type" => "text",
+                        "rules" => ["required", "max:255"],
+                        "placeholder" => "Enter Full name",
                     ],
-                    'name' => [
-                        'label' => 'Course name',
-                        'type' => 'textarea',
-                        'rules' => ['required', 'max:255'],
-                        'placeholder' => 'Enter Full course name',
+                    "shift" => [
+                        "label" => "Shift",
+                        "type" => "select",
+                        "options" => [
+                            "Morden Day",
+                            "Morden Evening",
+                            "Office",
+                            "Winkler Day",
+                            "Winkler Evening",
+                            "Driver",
+                            "Cleaning",
+                        ],
+                        "rules" => ["required"],
+                        "required" => true,
+                    ],
+                    "phone" => [
+                        "label" => "Phone",
+                        "type" => "tel",
+                        "rules" => [
+                            "required",
+                            'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+                        ],
+                        "placeholder" => "Enter phone number",
+                    ],
+                    "status" => [
+                        "label" => "Active",
+                        "type" => "radio",
+                        "options" => ["Yes", "No"],
+                        "rules" => ["required"],
+                    ],
+                    "supervisor" => [
+                        "label" => "Supervisor",
+                        "type" => "text",
+                        "rules" => ["required", "max:255"],
+                        "placeholder" => "Enter Full name of supervisor",
+                    ],
+                    "file" => [
+                        "label" => "Photo",
+                        "type" => "file",
+                    ],
+                ],
+            ],
+            "new-course" => [
+                "title" => "Add New Course Form",
+                "fields" => [
+                    "email" => [
+                        "label" => "Email",
+                        "type" => "email",
+                        "rules" => [
+                            "required",
+                            "email",
+                            'regex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/',
+                        ],
+                        "placeholder" => "Enter email",
+                        "required" => true,
+                    ],
+                    "name" => [
+                        "label" => "Course name",
+                        "type" => "textarea",
+                        "rules" => ["required", "max:255"],
+                        "required" => true,
                     ],
 
-                    'date' => [
-                        'label' => 'Hard Expiry Date',
-                        'type' => 'date',
-                        'rules' => ['required'],
+                    "date" => [
+                        "label" => "Hard Expiry Date",
+                        "type" => "date",
+                        "rules" => ["required"],
+                        "required" => true,
                     ],
 
-                    'valid' => [
-                        'label' => 'Default Valid Period',
-                        'type' => 'date', //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
-                        'rules' => ['nullable'],
+                    "valid" => [
+                        "label" => "Default Valid Period",
+                        "type" => "date", //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
+                        "rules" => ["nullable"],
                     ],
-                    'logo' => [
-                        'label' => 'Attach a file',
-                        'type' => 'file',
-                        'rules' => ['nullable', 'file', 'max:2048'],
-                        'required' => false,
+                    "logo" => [
+                        "label" => "Attach a file",
+                        "type" => "file",
+                        "rules" => ["nullable", "file", "max:2048"],
+                        "required" => false,
                     ],
-                    'type' => [
-                        'label' => 'Type of course',
-                        'type' => 'select',
-                        'options' => ['Policies', 'Toolbox Talks', 'Manitoba SAFE Work Courses'],
-                        'rules' => ['required'],
-                        'required' => true,
+                    "type" => [
+                        "label" => "Type of course",
+                        "type" => "select",
+                        "options" => [
+                            "Policies",
+                            "Toolbox Talks",
+                            "Manitoba SAFE Work Courses",
+                        ],
+                        "rules" => ["required"],
+                        "required" => true,
                     ],
-                    'website' => [
-                        'label' => 'Link to website',
-                        'type' => 'url',
-                        'rules' => ['nullable', 'url'],
-                        'required' => false,
-                        'placeholder' => 'Example: https://example.com',
+                    "website" => [
+                        "label" => "Link to website",
+                        "type" => "url",
+                        "rules" => ["nullable", "url"],
+                        "required" => false,
+                        "placeholder" => "Example: https://example.com",
                     ],
-                    'attachment' => [
-                        'label' => 'Attach a file',
-                        'type' => 'file',
-                        'rules' => ['nullable', 'file', 'max:2048'],
-                        'required' => false,
+                    "attachment" => [
+                        "label" => "Attach a file",
+                        "type" => "file",
+                        "rules" => ["nullable", "file", "max:2048"],
+                        "required" => false,
                     ],
                 ],
             ],
@@ -230,13 +262,16 @@ class UserFormController extends Controller
         $result = [];
 
         //Ckeck for key 'type' in array
-        if (isset($formConfig['fields']) && is_array($formConfig['fields'])) {
-            $result = $this->extractFieldsRecursively($formConfig['fields']);
+        if (isset($formConfig["fields"]) && is_array($formConfig["fields"])) {
+            $result = $this->extractFieldsRecursively($formConfig["fields"]);
         }
 
         foreach ($formConfig as $key => $value) {
-            if (is_array($value) && $key !== 'fields') {
-                $result = array_merge($result, $this->extractFieldsWithType($value));
+            if (is_array($value) && $key !== "fields") {
+                $result = array_merge(
+                    $result,
+                    $this->extractFieldsWithType($value),
+                );
             }
         }
         return $result;
@@ -248,10 +283,13 @@ class UserFormController extends Controller
 
         foreach ($fields as $key => $value) {
             if (is_array($value)) {
-                if (isset($value['type'])) {
+                if (isset($value["type"])) {
                     $result[$key] = $value;
                 }
-                $result = array_merge($result, $this->extractFieldsRecursively($value));
+                $result = array_merge(
+                    $result,
+                    $this->extractFieldsRecursively($value),
+                );
             }
         }
 
@@ -263,90 +301,116 @@ class UserFormController extends Controller
         $formConfig = $this->getFormConfig($formKey);
 
         if (!$formConfig) {
-            abort(404, 'Form not found');
-        };
-        return view('forms.show', [
-            'formKey' => $formKey,
-            'formConfig' => $formConfig,
-            'formComponents' => $this->extractFieldsWithType($formConfig),
+            abort(404, "Form not found");
+        }
+        return view("forms.show", [
+            "formKey" => $formKey,
+            "formConfig" => $formConfig,
+            "formComponents" => $this->extractFieldsWithType($formConfig),
         ]);
     }
 
-    protected function validateRules ($formData, $formConfig)
+    protected function validateRules($formData, $formConfig)
     {
         $rules = [];
         foreach ($formConfig as $name => $field) {
             $fieldRules = [];
             //Use existing rules
-            if (!empty($field['rules'])) {
-                $fieldRules = $field['rules'];
+            if (!empty($field["rules"])) {
+                $fieldRules = $field["rules"];
             } else {
                 //Automated generated rules, if 'rules' dose not exist
-                switch ($field['type']) {
-                    case 'radio':
-                        $fieldRules = ['nullable', 'boolean'];
+                switch ($field["type"]) {
+                    case "radio":
+                        $fieldRules = ["nullable", "boolean"];
                         break;
-                    case 'select':
+                    case "select":
                         $fieldRules = [
-                            $field['required'] ? 'required' : 'nullable',
-                            Rule::in($field['options']),
+                            $field["required"] ? "required" : "nullable",
+                            Rule::in($field["options"]),
                         ];
                         break;
-                    case 'email':
-                        $fieldRules = [$field['required'] ? 'required' : 'nullable', 'email'];
+                    case "email":
+                        $fieldRules = [
+                            $field["required"] ? "required" : "nullable",
+                            "email",
+                        ];
                         break;
-                    case 'file':
-                        $fieldRules = isset($field['required']) && $field['required']
-                        ? ['required', 'file', 'max:5120']
-                        : ['nullable', 'file', 'max:5120'];
+                    case "file":
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? ["required", "file", "max:5120"]
+                            : ["nullable", "file", "max:5120"];
                         break;
-                    case 'checkbox':
-                        $fieldRules = ['nullable', 'boolean'];
+                    case "checkbox":
+                        $fieldRules = ["nullable", "boolean"];
                         break;
-                    case 'checkbox-group':
-                        $fieldRules = ['nullable', 'array', Rule::in($field['options'])];
+                    case "checkbox-group":
+                        $fieldRules = [
+                            "nullable",
+                            "array",
+                            Rule::in($field["options"]),
+                        ];
                         break;
-                    case 'date':
-                        $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'date'] : ['nullable', 'date'];
-                        ;
+                    case "date":
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? ["required", "date"]
+                            : ["nullable", "date"];
                         break;
-                    case 'textarea':
-                        $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'string', 'max:1000'] : ['nullable', 'string', 'max:1000'];
+                    case "textarea":
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? ["required", "string", "max:1000"]
+                            : ["nullable", "string", "max:1000"];
                         break;
-                    case 'tel':
-                        $fieldRules = isset($field['required']) && $field['required']
-                        ? ['required',  'regex:/^\+?[0-9\s\-\(\)]{7,20}$/']
-                        : ['nullable', 'regex:/^\+?[0-9\s\-\(\)]{7,20}$/'];
+                    case "tel":
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? [
+                                "required",
+                                'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+                            ]
+                            : [
+                                "nullable",
+                                'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+                            ];
                         break;
-                    case 'url':
-                        $fieldRules = isset($field['required']) && $field['required']
-                        ? ['required',  'url']
-                        : ['nullable', 'url'];
+                    case "url":
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? ["required", "url"]
+                            : ["nullable", "url"];
                         break;
                     default:
-                    $fieldRules = isset($field['required']) && $field['required'] ? ['required', 'string', 'max:255'] : ['nullable', 'string', 'max:255'];
+                        $fieldRules =
+                            isset($field["required"]) && $field["required"]
+                            ? ["required", "string", "max:255"]
+                            : ["nullable", "string", "max:255"];
                         break;
                 }
             }
             //Add conditional rules if applicable
-            if (isset($field['conditional-rules']['when'])) {
-                $condition = $field['conditional-rules']['when'];
-                $dependentField = $condition['field'];
-                $dependentValue = $condition['value'];
+            if (isset($field["conditional-rules"]["when"])) {
+                $condition = $field["conditional-rules"]["when"];
+                $dependentField = $condition["field"];
+                $dependentValue = $condition["value"];
 
                 //For chexbox-group
-                $actualValue = isset($formData[$dependentField]) ? $formData[$dependentField] : null;
+                $actualValue = isset($formData[$dependentField])
+                    ? $formData[$dependentField]
+                    : null;
                 if (is_array($actualValue)) {
                     $conditionMet = in_array($dependentValue, $actualValue);
                 } else {
                     $conditionMet = $actualValue === $dependentValue;
                 }
                 if ($conditionMet) {
-                    $fieldRules = array_merge($fieldRules, $condition['rules']);
+                    $fieldRules = array_merge($fieldRules, $condition["rules"]);
                 }
                 //Apply conditional rules
                 if ($actualValue === $dependentValue) {
-                    $fieldRules = array_merge($fieldRules, $condition['rules']);
+                    $fieldRules = array_merge($fieldRules, $condition["rules"]);
                 }
             }
 
@@ -360,38 +424,44 @@ class UserFormController extends Controller
     }
     public function submit(Request $request, $formKey)
     {
-        $embeddedImages = [];
-        $attachments = [];
-        $formConfig = $this->extractFieldsWithType($this->getFormConfig($formKey));
+        $formConfig = $this->extractFieldsWithType(
+            $this->getFormConfig($formKey),
+        );
         if (!$formConfig) {
-            abort(404, 'Form Not Found');
+            abort(404, "Form Not Found");
         }
         $formData = $request->all();
         $rules = $this->validateRules($formData, $formConfig);
 
         $validator = Validator::make($formData, $rules);
-        if ($validator->fails()){
+        if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        $validatedData = $validator->validate();
+
         // Date interval in one field
-        if (isset($formData['date-range-start']) && isset($formData['date-range-end'])) {
-            $formData['date-range'] = 'From ' . $formData['date-range-start'] .  ' to ' . $formData['date-range-end'];
-            unset($formData['date-range-start'], $formData['date-range-end']);
+        if (isset($validatedData['date-range-start']) && isset($validatedData['date-range-end'])) {
+            $validatedData['date-range'] = 'From ' . $validatedData['date-range-start'] .  ' to ' . $validatedData['date-range-end'];
+            unset($validatedData['date-range-start'], $validatedData['date-range-end']);
         }
 
-        dd($formData);
+        $embeddedImages = [];
+        $attachments = [];
+        $filePath = [];
+
         // Save upload file
         foreach ($formConfig as $name => $field) {
-            if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($formData[$name])) {
-                unset($formData[$name]);
+            if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($validatedData[$name])) {
+                unset($validatedData[$name]);
             }
             if ($field['type'] === 'file' && $request->hasFile($name)) {
                 $uploadedfile = $request->file($name);
-                $filepath = $uploadedfile->store('attachments', 'public');
-                $formData[$name] = $filepath; //Adding file path to form
+                $fileName = Str::random(16) . '.' . $uploadedfile->getClientOriginalExtension();
+                $filePathStr = $uploadedfile->storeAs('attachments', $fileName, 'public');
+                $filePath[$name] = $filePathStr; //Adding file path to form
 
-                $fullPath = storage_path('app/public/' . $filepath);
+                $fullPath = storage_path('app/public/' . $filePathStr);
                 $attachments[] = $fullPath;
 
                 //Prepare embedded image
@@ -402,46 +472,65 @@ class UserFormController extends Controller
                 }
             }
         }
+        $validatedData['files'] = $filePath;
+        $validatedData['embedded-images'] = $embeddedImages;
 
         //Stoere in JSON
-        $jsonPath = storage_path('app/public/forms/');
+        $formName = $this->getFormConfig($formKey)['title'];
+        $jsonPath = storage_path("app/public/forms/");
         $formDataWithName = [
-            'form_name' => $formConfig['title'] ?? 'untitled',
-            'submitted_at' => now()->toDayDateTimeString(),
-            'fields' => $formData
+            "form_name" => $formName ?? "untitled",
+            "submitted_at" => now()->toDayDateTimeString(),
+            "fields" => $validatedData,
         ];
         if (!File::exists($jsonPath)) {
             File::makeDirectory($jsonPath, 0755, true);
         }
-        $fileName = 'form_' . now()->format('Ymd_His') . '.json';
-        File::put($jsonPath . $fileName, json_encode($formDataWithName, JSON_PRETTY_PRINT));
+        $fileName = "form_" . now()->format("Ymd_His") . ".json";
+        File::put(
+            $jsonPath . $fileName,
+            json_encode($formDataWithName, JSON_PRETTY_PRINT),
+        );
 
         //store in db
         /* Need to create table and model,
          This code saved json string in db
          SubmittedForm::create([
-            'form_name' => $formConfig['title'] ?? 'Untitled Form',
-            'form_json' => $formData,
+            'form_name' => $formName ?? 'Untitled Form',
+            'form_json' => $formDataWithName,
         ]);
         */
 
         // Preparation data for PDF
+        $cleanPDFData = [];
+        foreach ($validatedData as $key => $value) {
+            if ($value === [] || $value === '' || $value === null){
+                continue;
+            } else {
+                $cleanPDFData[$key] = $value;
+            }
+        };
         $pdfData = [
-            'title' => $formConfig['title'],
-            'fields' => $formData,
-            'embeddedImages' => $embeddedImages,
+            "title" => $formName,
+            "fields" => $cleanPDFData,
+            "embeddedImages" => $embeddedImages,
         ];
+
         // Generate PDF
-        $pdf = Pdf::loadView('forms.pdf', $pdfData);
-        $pdf->setOptions(['isRemoteEnabled' => true]);
+        $pdf = Pdf::loadView("forms.pdf", $pdfData);
+        $pdf->setOptions(["isRemoteEnabled" => true]);
 
         // Save PDF in file
         $pdfContent = $pdf->output();
-        $relativePath = 'pdf/form_' . now()->format('Ymd_His') . '.pdf';
-        Storage::disk('public')->put($relativePath, $pdfContent);
-        $attachmentPath = 'app/public/' . $relativePath;
-        Mail::to('admin@example.com')->send(new FormSubmissionMail($pdfData, $attachmentPath));
+        $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
+        Storage::disk("public")->put($relativePath, $pdfContent);
+        $attachmentPath = "app/public/" . $relativePath;
+
+        Mail::to("admin@example.com")->send(
+            new FormSubmissionMail($pdfData, $attachmentPath),
+        );
         // Show pdf in browser
-        return $pdf->stream('form_submission.pdf');
+        //return redirect()->back()->with('message', 'done!');
+        return $pdf->stream("form_submission.pdf");
     }
 }
