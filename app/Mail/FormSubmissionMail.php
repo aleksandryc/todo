@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail\UserForms;
+namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -15,14 +15,15 @@ class FormSubmissionMail extends Mailable
     use Queueable, SerializesModels;
     public $data;
     public $pdfPath;
-    public $attachments;
+    public $userAttachments;
     /**
      * Create a new message instance.
      */
-    public function __construct($pdfData, $pdfPath)
+    public function __construct($pdfData, $pdfPath, $userAttachments = [])
     {
         $this->data = $pdfData;
         $this->pdfPath = $pdfPath;
+        $this->userAttachments = $userAttachments;
     }
 
     /**
@@ -41,7 +42,7 @@ class FormSubmissionMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.user-forms.form-submission-mail',
+            markdown: 'mail.form-submission-mail',
         );
     }
 
@@ -52,24 +53,26 @@ class FormSubmissionMail extends Mailable
      */
     public function attachments(): array
     {
-        $attachments =[];
+        $attachments = [];
 
-        if (file_exists(storage_path($this->pdfPath))) {
-            $attachments[] = Attachment::fromPath(storage_path($this->pdfPath))
-            ->as('form_submission.pdf')
-            ->withMime('application/pdf');
+        if (file_exists(storage_path('app/' . $this->pdfPath))) {
+            $attachments[] = Attachment::fromPath(storage_path('app/' . $this->pdfPath))
+                ->as('form_submission.pdf')
+                ->withMime('application/pdf');
         }
-        if ($this->data['fields']['files']) {
-            foreach ($this->data['fields']['files'] as $key => $file) {
-                if (file_exists($file) ) {
-                    $fileName = basename($file);
-                    $mimeType = \Illuminate\Support\Facades\File::mimeType($file);
-                    $attachments[] = Attachment::fromPath("app/public/" . $file)
-                    ->as($fileName)
-                    ->withMime($mimeType);
-                }
+        foreach ($this->userAttachments as $key => $attachmentPath) {
+
+            if (file_exists(storage_path($attachmentPath))) {
+                $fileName = basename((storage_path($attachmentPath)));
+                $mimeType = \Illuminate\Support\Facades\File::mimeType((storage_path($attachmentPath)));
+
+                $attachments[] = Attachment::fromPath(storage_path($attachmentPath))
+                ->as($fileName)
+                ->withMime($mimeType);
+
             }
         }
+
         return $attachments;
     }
 

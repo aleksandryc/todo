@@ -21,6 +21,8 @@ Route::post('/logout', [AuthLoginController::class, 'logout'])->name('logout')->
 
 //Form for portal
 Route::prefix('forms')->name('forms.')->group(function(){
+    // Show all forms
+    Route::get('/', [UserFormController::class, 'index'])->name(('index'));
     // Show form by key
     Route::get('/{formKey}', [UserFormController::class, 'show'])->name('show');
     // Submit form

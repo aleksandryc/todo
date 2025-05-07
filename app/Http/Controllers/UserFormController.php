@@ -1,17 +1,18 @@
-"description" => "Demo Form",
 <?php
 
 namespace App\Http\Controllers;
 
-use App\Mail\UserForms\FormSubmissionMail;
-use Illuminate\Http\Request;
+use App\Mail\FormSubmissionMail;
+use App\Models\SubmittedForm;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Mail;
-use Storage;
-use Str;
+use \Illuminate\Support\Str;
+
 
 class UserFormController extends Controller
 {
@@ -99,7 +100,7 @@ class UserFormController extends Controller
                         "rules" => ["nullable", "date"],
                         "conditional-rules" => [
                             "when" => [
-                                "field" => "date-range-perm",
+                                "field" => "permanent",
                                 "value" => false,
                                 "rules" => ["required", "date"],
                             ],
@@ -117,13 +118,13 @@ class UserFormController extends Controller
                         "required" => false,
                         "conditional-rules" => [
                             "when" => [
-                                "field" => "date-range-perm",
+                                "field" => "permanent",
                                 "value" => false,
                                 "rules" => ["required", "date"],
                             ],
                         ],
                     ],
-                    "date-range-perm" => [
+                    "permanent" => [
                         "label" =>
                         "Timeframe of approval (or “Permanent”) ",
                         "type" => "checkbox",
@@ -136,12 +137,6 @@ class UserFormController extends Controller
                         "Reason (Provide a brief description of why this is needed)",
                         "type" => "textarea",
                         "required" => true,
-                    ],
-                    "logo" => [
-                        "label" => "Attach a file",
-                        "type" => "file",
-                        "rules" => ["nullable", "file", "max:2048"],
-                        "required" => false,
                     ],
                 ],
             ],
@@ -319,7 +314,8 @@ class UserFormController extends Controller
         ]);
     }
 
-    public function index() {
+    public function index()
+    {
         // Manually fill in the list of all available forms, in the future if the forms are stored in a separate file or database, the list will be dynamic
         $formKeys = [
             "external-access-request",
@@ -524,16 +520,18 @@ class UserFormController extends Controller
         );
 
         //store in db
-        /* Need to create table and model,
-         This code saved json string in db
-         SubmittedForm::create([
+        SubmittedForm::create([
             'form_name' => $formName ?? 'Untitled Form',
             'form_json' => $formDataWithName,
         ]);
-        */
+
 
         // Preparation data for PDF
-        $logo = 'data:' . File::mimeType(storage_path('app/public/logo-96x96.png')) . ';base64,' . base64_encode(File::get(storage_path('app/public/logo-96x96.png')));
+        $logoPath = storage_path('app/public/logo-96x96.png');
+        $logo = File::exists($logoPath)
+            ? 'data:' . File::mimeType($logoPath) . ';base64,' . base64_encode(File::get($logoPath))
+            : null;
+
         $cleanPDFData = [];
         foreach ($validatedData as $key => $value) {
             if ($value === [] || $value === '' || $value === null) {
@@ -542,7 +540,7 @@ class UserFormController extends Controller
                 unset($cleanPDFData[$key]);
             } elseif ($key === 'files') {
                 $list = [];
-                foreach ($value as $k => $item){
+                foreach ($value as $k => $item) {
                     $list[$k] = File::basename($item);
                 }
                 $cleanPDFData[$key] = $list;
@@ -572,7 +570,7 @@ class UserFormController extends Controller
             new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
         );
 
-        return $pdf->stream("form_submission.pdf");
-        /* return redirect()->back()->with('message', 'Form successfully submitted!'); */
+        //return $pdf->stream("form_submission.pdf");
+        return redirect()->back()->with('message', 'Form successfully submitted!');
     }
 }
