@@ -136,6 +136,12 @@ class UserFormController extends Controller
                         "type" => "textarea",
                         "required" => true,
                     ],
+                    "logo" => [
+                        "label" => "Attach a file",
+                        "type" => "file",
+                        "rules" => ["nullable", "file", "max:2048"],
+                        "required" => false,
+                    ],
                 ],
             ],
             "new-employee" => [
@@ -462,7 +468,7 @@ class UserFormController extends Controller
                 $filePath[$name] = $filePathStr; //Adding file path to form
 
                 $fullPath = storage_path('app/public/' . $filePathStr);
-                $attachments[] = $fullPath;
+                $attachments[$name] = 'app/public/attachments/' . $fileName;
 
                 //Prepare embedded image
                 if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
@@ -502,35 +508,46 @@ class UserFormController extends Controller
         */
 
         // Preparation data for PDF
+        $logo = 'data:' . File::mimeType(storage_path('app/public/logo-96x96.png')) . ';base64,' . base64_encode(File::get(storage_path('app/public/logo-96x96.png')));
         $cleanPDFData = [];
         foreach ($validatedData as $key => $value) {
-            if ($value === [] || $value === '' || $value === null){
+            if ($value === [] || $value === '' || $value === null) {
                 continue;
+            } elseif ($key === 'embedded-images') {
+                unset($cleanPDFData[$key]);
+            } elseif ($key === 'files') {
+                $list = [];
+                foreach ($value as $k => $item){
+                    $list[$k] = File::basename($item);
+                }
+                $cleanPDFData[$key] = $list;
             } else {
                 $cleanPDFData[$key] = $value;
             }
         };
         $pdfData = [
             "title" => $formName,
+            'logo' => $logo,
+            'description' => $this->getFormConfig($formKey)['description'] ?? '',
             "fields" => $cleanPDFData,
             "embeddedImages" => $embeddedImages,
         ];
 
         // Generate PDF
-        $pdf = Pdf::loadView("forms.pdf", $pdfData);
+        $pdf = Pdf::setPaper('a4')->loadView("forms.pdf", $pdfData);
         $pdf->setOptions(["isRemoteEnabled" => true]);
 
         // Save PDF in file
         $pdfContent = $pdf->output();
         $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
         Storage::disk("public")->put($relativePath, $pdfContent);
-        $attachmentPath = "app/public/" . $relativePath;
+        $pdfAttachmentPath = "public/" . $relativePath;
+        //dd($cleanPDFData);
+        /* Mail::to("admin@example.com")->send(
+            new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
+        ); */
 
-        Mail::to("admin@example.com")->send(
-            new FormSubmissionMail($pdfData, $attachmentPath),
-        );
-        // Show pdf in browser
-        //return redirect()->back()->with('message', 'done!');
         return $pdf->stream("form_submission.pdf");
+        /* return redirect()->back()->with('message', 'Form successfully submitted!'); */
     }
 }

@@ -25,7 +25,7 @@
                     @endphp
 
                     @if($embeddedData)
-                        <a href="{{ asset('storage/' . (is_string($value) ? $value : '')) }}">
+                        <a style="{max-width:240px}" href="{{ asset('storage/' . (is_string($value) ? $value : '')) }}">
                             <img src="{{ $embeddedData }}" alt="Embedded image">
                         </a>
                     @elseif(is_string($value) && str_starts_with($value, 'attachments/'))
