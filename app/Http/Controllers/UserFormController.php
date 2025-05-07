@@ -1,3 +1,4 @@
+"description" => "Demo Form",
 <?php
 
 namespace App\Http\Controllers;
@@ -126,8 +127,8 @@ class UserFormController extends Controller
                         "label" =>
                         "Timeframe of approval (or “Permanent”) ",
                         "type" => "checkbox",
-                        "options" => "“Permanent”",
-                        "rules" => ["boolean"],
+                        'options' => 'permanent',
+                        "rules" => ["nullable", "boolean"],
                         "required" => false,
                     ],
                     "reason" => [
@@ -146,6 +147,7 @@ class UserFormController extends Controller
             ],
             "new-employee" => [
                 "title" => "Add New Employee Form",
+                "description" => "Demo Form",
                 "fields" => [
                     "name" => [
                         "label" => "Full name",
@@ -197,6 +199,7 @@ class UserFormController extends Controller
             ],
             "new-course" => [
                 "title" => "Add New Course Form",
+                "description" => "Demo Form",
                 "fields" => [
                     "email" => [
                         "label" => "Email",
@@ -316,6 +319,28 @@ class UserFormController extends Controller
         ]);
     }
 
+    public function index() {
+        // Manually fill in the list of all available forms, in the future if the forms are stored in a separate file or database, the list will be dynamic
+        $formKeys = [
+            "external-access-request",
+            "new-employee",
+            "new-course",
+        ];
+
+        // Get forms config
+        $forms = [];
+        foreach ($formKeys as $key) {
+            $config = $this->getFormConfig($key);
+            $forms[] = [
+                'key' => $key,
+                'title' => $config['title'] ?? "Untitled Form",
+                'description' => $config['description'] ?? '',
+            ];
+        }
+
+        return view('forms.index', compact('forms'));
+    }
+
     protected function validateRules($formData, $formConfig)
     {
         $rules = [];
@@ -349,7 +374,7 @@ class UserFormController extends Controller
                             : ["nullable", "file", "max:5120"];
                         break;
                     case "checkbox":
-                        $fieldRules = ["nullable", "boolean"];
+                        $fieldRules = ["nullable", "accepted", "boolean"];
                         break;
                     case "checkbox-group":
                         $fieldRules = [
@@ -458,7 +483,7 @@ class UserFormController extends Controller
 
         // Save upload file
         foreach ($formConfig as $name => $field) {
-            if ($field['type'] === 'checkbox' || $field['type'] === 'checkbox-group' && empty($validatedData[$name])) {
+            if ($field['type'] === 'checkbox-group' && !isset($validatedData[$name])) {
                 unset($validatedData[$name]);
             }
             if ($field['type'] === 'file' && $request->hasFile($name)) {
@@ -482,10 +507,10 @@ class UserFormController extends Controller
         $validatedData['embedded-images'] = $embeddedImages;
 
         //Stoere in JSON
-        $formName = $this->getFormConfig($formKey)['title'];
+        $formName = $this->getFormConfig($formKey)['title'] ?? 'Default form name';
         $jsonPath = storage_path("app/public/forms/");
         $formDataWithName = [
-            "form_name" => $formName ?? "untitled",
+            "form_name" => $formName,
             "submitted_at" => now()->toDayDateTimeString(),
             "fields" => $validatedData,
         ];
@@ -542,10 +567,10 @@ class UserFormController extends Controller
         $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
         Storage::disk("public")->put($relativePath, $pdfContent);
         $pdfAttachmentPath = "public/" . $relativePath;
-        //dd($cleanPDFData);
-        /* Mail::to("admin@example.com")->send(
+
+        Mail::to("admin@example.com")->send(
             new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
-        ); */
+        );
 
         return $pdf->stream("form_submission.pdf");
         /* return redirect()->back()->with('message', 'Form successfully submitted!'); */
