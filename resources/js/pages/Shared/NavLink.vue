@@ -23,6 +23,7 @@
                         <Link href="/name/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</Link>
                         <Link href="/name/orders" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</Link>
                         <Link href="/name/tables" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Tables</Link>
+                        <Link href="/forms" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Forms</Link>
                     </template>
 
                     <!-- Worker Options -->
