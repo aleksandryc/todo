@@ -33,8 +33,10 @@
         "@tailwindcss/postcss": "^4.1.4",
         "@tailwindcss/vite": "^4.1.4",
         "@vitejs/plugin-vue": "^5.2.1",
+        "@vuelidate/core": "^2.0.3",
         "@vueuse/core": "^12.0.0",
         "autoprefixer": "^10.4.20",
+        "axios": "^1.9.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
@@ -51,6 +53,7 @@
         "tw-animate-css": "^1.2.5",
         "typescript": "^5.2.2",
         "vue": "^3.5.13",
+        "vue-imask": "^7.6.1",
         "ziggy-js": "^2.4.2"
     },
     "optionalDependencies": {

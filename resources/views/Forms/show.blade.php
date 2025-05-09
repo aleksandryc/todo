@@ -4,8 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    @vite(['resources/js/form-app.ts']) <!-- New file for form to use Vue w/o inertiajs -->
 </head>
 <body>
+    <div class="container mx-auto mt-2">
+        @if($flash = session('message'))
+        <div id="flash-message" class="text-3xl text-center text-green-700" role="alert">
+            {{$flash}}
+        </div>
+        @endif
+        <h1 class="text-3xl text-center font-bold">{{ $formConfig['title'] ?? 'Untiteled form'}}</h1>
+        <p class="text-xl text-center">{{ $formConfig['description'] ?? '' }}</p>
+
+        <!-- Container for Vue-component -->
+        <div id="form-app"
+            data-form-key="{{ $formKey }}"
+            data-form-config="{{ json_encode($formConfig) }}"
+            data-form-components="{{ json_encode($formComponents) }}"
+            data-old-input="{{ json_encode(old()) }}"
+            data-csrf-token="{{ csrf_token() }}"
+            data-action-url="{{ route('forms.submit', $formKey) }}">
+        </div>
+    </div>
+</body>
+{{-- <body>
     <div class="container mx-auto mt-2">
         @if($flash = session('message'))
         <div id="flash-message" class="text-3xl text-center text-green-700" role="alert">
@@ -88,5 +110,5 @@
             <button type="submit" class="bg-blue-600 text-white px-4 py-2">Send</button>
         </form>
     </div>
-</body>
+</body> --}}
 </html>

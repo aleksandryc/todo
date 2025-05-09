@@ -12,7 +12,7 @@ export default defineConfig({
         tailwindcss(),
         DefineOptions(),
         laravel({
-            input: ['resources/js/app.ts'],
+            input: ['resources/js/app.ts', 'resources/js/form-app.ts'],
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
