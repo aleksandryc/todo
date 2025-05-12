@@ -16,7 +16,16 @@ const props = defineProps({
     formComponents: {
         type: Object,
     },
-
+});
 </script>
 
-<
+<template>
+    <AppHead/>
+    <FormApp 
+        :formKey="props.formKey" 
+        :formConfig="props.formConfig" 
+        :formComponents="props.formComponents" 
+        :csrfToken="'yourCsrfTokenHere'" 
+        :actionUrl="'yourActionUrlHere'" 
+    />
+</template>
