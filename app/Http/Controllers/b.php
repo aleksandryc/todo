@@ -16,13 +16,7 @@ class UserFormController extends Controller
 {
     protected function getFormConfig($formKey)
     {
-        $config = config("forms.$formKey");
-
-        if (!$config) {
-            abort(404);
-        }
-
-        return $config;
+        return config("forms.$formKey") ?? abort(404, 'Form Not Found');
     }
     protected function extractFieldsWithType($formConfig)
     {
@@ -62,14 +56,28 @@ class UserFormController extends Controller
 
         return $result;
     }
+
+    protected function handleUploadFile($file, $name)
+    {
+        $fileName = Str::random(16) . '.' . $file->getClientOriginalExtension();
+        $filePathStr = $file->storeAs('/attachments', $fileName, 'public');
+
+        $fullPath = storage_path('app/public/' . $filePathStr);
+        $embed = null;
+
+        if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
+            $mimeType = File::mimeType($fullPath);
+            $embed = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+        }
+
+        return [$filePathStr, $embed];
+    }
+
     public function show($formKey)
     {
         // Get form name from url
         $formConfig = $this->getFormConfig($formKey);
 
-        if (!$formConfig) {
-            abort(404, "Form not found");
-        }
         return view("forms.show", [
             "formKey" => $formKey,
             "formConfig" => $formConfig,
@@ -79,11 +87,11 @@ class UserFormController extends Controller
 
     public function index()
     {
-       // Retrieve all forms key and other information
-       $allForms = config('forms', []);
+        // Retrieve all forms key and other information
+        $allForms = config('forms', []);
 
         // Get forms config key and name with description
-        $forms = collect($allForms)->map(function ($form, $key){
+        $forms = collect($allForms)->map(function ($form, $key) {
             return [
                 'key' => $key,
                 'title' => $form['title'] ?? "Untitled Form",
@@ -208,9 +216,8 @@ class UserFormController extends Controller
     }
     public function submit(Request $request, $formKey)
     {
-        $formConfig = $this->extractFieldsWithType(
-            ($formConfig = $this->getFormConfig($formKey)) ? $formConfig : abort(404, "Form Not Found")
-        );
+        $formComponents = $this->getFormConfig($formKey);
+        $formConfig = $this->extractFieldsWithType($formComponents);
 
         $formData = $request->all();
         $rules = $this->validateRules($formData, $formConfig);
@@ -235,21 +242,13 @@ class UserFormController extends Controller
             if ($field['type'] === 'checkbox-group' && !isset($validatedData[$name])) {
                 unset($validatedData[$name]);
             }
-            if ($field['type'] === 'file' && $request->hasFile($name)) {
-                $uploadedfile = $request->file($name);
-                $fileName = Str::random(16) . '.' . $uploadedfile->getClientOriginalExtension();
-                $filePathStr = $uploadedfile->storeAs('attachments', $fileName, 'public');
-                $filePath[$name] = $filePathStr; //Adding file path to form
+        }
+        foreach ($request->allFiles() as $fieldName => $file) {
+            [$filePathStr, $embed] = $this->handleUploadFile($file, $fieldName);
+            $formData[$fieldName] = $filePathStr;
 
-                $fullPath = storage_path('app/public/' . $filePathStr);
-                $attachments[$name] = 'app/public/attachments/' . $fileName;
-
-                //Prepare embedded image
-                if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
-                    $mimeType = File::mimeType($fullPath);
-                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                    $embeddedImages[$name] = $base64;
-                }
+            if ($embed !== null) {
+                $embeddedImages[$name] = $embed;
             }
         }
         $validatedData['files'] = $filePath;
