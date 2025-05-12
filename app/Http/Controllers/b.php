@@ -16,319 +16,13 @@ class UserFormController extends Controller
 {
     protected function getFormConfig($formKey)
     {
-        /*
-        For example, few forms have been added to the controller, but if necessary,
-        they can be moved to a separate file or use a database.
-        */
-        return match ($formKey) {
-            "external-access-request" => [
-                "title" => "External Access Request",
-                "description" =>
-                "To request an employee be granted external access to company information when outside of Elias Woodwork’s facilities please fill in the following and submit to HR for approval. If a mobile phone or laptop is required, please note that in the devices section. ",
-                "fields" => [
-                    "names-group" => [
-                        "supervisor" => [
-                            "name" => "supervisor",
-                            "label" => "Supervisor",
-                            "type" => "text",
-                            "rules" => ["required", "max:255"],
-                            "placeholder" => "Enter Full name",
-                            "required" => true,
-                        ],
-                        "employee" => [
-                            "name" => "employee",
-                            "label" => "Employee",
-                            "type" => "text",
-                            "rules" => ["required", "max:255"],
-                            "placeholder" => "Enter Full name",
-                            "required" => true,
-                        ],
-                    ],
-                    "access-type" => [
-                        "name" => "access-type",
-                        "label" => "Type of Access (Check all that apply) ",
-                        "type" => "checkbox-group",
-                        "options" => [
-                            "External Email Access",
-                            "External VPN Access",
-                        ],
-                        "rules" => [
-                            "required",
-                            "array",
-                            Rule::in([
-                                "External Email Access",
-                                "External VPN Access",
-                            ]),
-                        ],
-                        "required" => true,
-                    ],
-                    [
-                        "Device-used-email" => [
-                            "label" =>
-                            "Devices being used (MFA requires mobile phone): ",
-                            "type" => "text",
+        $config = config("forms.$formKey");
 
-                            "placeholder" => "MFA requires mobile phone",
-                            "conditional-rules" => [
-                                "when" => [
-                                    "field" => "access-type",
-                                    "value" => "External Email Access",
-                                    "rules" => ["required", "max:255"],
-                                ],
-                            ],
-                        ],
-                        "device-used-vpn" => [
-                            "label" => "Devices being used: ",
-                            "type" => "text",
+        if (!$config) {
+            abort(404);
+        }
 
-                            "placeholder" => "MFA requires mobile phone",
-                            "conditional-rules" => [
-                                "when" => [
-                                    "field" => "access-type",
-                                    "value" => "External VPN Access",
-                                    "rules" => ["required", "max:255"],
-                                ],
-                            ],
-                        ],
-                    ],
-                    "date-range-start" => [
-                        "label" =>
-                        "Timeframe of approval (Provide start) ",
-                        "type" => "date",
-                        "rules" => ["nullable", "date"],
-                        "conditional-rules" => [
-                            "when" => [
-                                "field" => "permanent",
-                                "value" => false,
-                                "rules" => ["required", "date"],
-                            ],
-                        ],
-                    ],
-                    "date-range-end" => [
-                        "label" =>
-                        "Timeframe of approval (Provide end dates) ",
-                        "type" => "date",
-                        "rules" => [
-                            "nullable",
-                            "date",
-                            "after_or_equal:date-range-start",
-                        ],
-                        "required" => false,
-                        "conditional-rules" => [
-                            "when" => [
-                                "field" => "permanent",
-                                "value" => false,
-                                "rules" => ["required", "date"],
-                            ],
-                        ],
-                    ],
-                    "permanent" => [
-                        "label" =>
-                        "Timeframe of approval (or “Permanent”) ",
-                        "type" => "checkbox",
-                        'options' => 'permanent',
-                        "rules" => ["nullable", "boolean"],
-                        "required" => false,
-                    ],
-                    "reason" => [
-                        "label" =>
-                        "Reason (Provide a brief description of why this is needed)",
-                        "type" => "textarea",
-                        "required" => true,
-                    ],
-                ],
-            ],
-            "new-employee" => [
-                "title" => "Add New Employee Form",
-                "description" => "Demo Form",
-                "fields" => [
-                    "name" => [
-                        "label" => "Full name",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "placeholder" => "Enter Full name",
-                    ],
-                    "shift" => [
-                        "label" => "Shift",
-                        "type" => "select",
-                        "options" => [
-                            "Morden Day",
-                            "Morden Evening",
-                            "Office",
-                            "Winkler Day",
-                            "Winkler Evening",
-                            "Driver",
-                            "Cleaning",
-                        ],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "phone" => [
-                        "label" => "Phone",
-                        "type" => "tel",
-                        "rules" => [
-                            "required",
-                            'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
-                        ],
-                        "placeholder" => "Enter phone number",
-                    ],
-                    "status" => [
-                        "label" => "Active",
-                        "type" => "radio",
-                        "options" => ["Yes", "No"],
-                        "rules" => ["required"],
-                    ],
-                    "supervisor" => [
-                        "label" => "Supervisor",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "placeholder" => "Enter Full name of supervisor",
-                    ],
-                    "file" => [
-                        "label" => "Photo",
-                        "type" => "file",
-                    ],
-                ],
-            ],
-            "maintenance-request-form" => [
-                "title" => "Maintenance Request Form",
-                "description" => "Demo: \"Request form for repair of equipment from the worker.\"",
-                "fields" => [
-                    "date" => [
-                        "name" => 'date',
-                        "label" => "Date",
-                        "type" => "date",
-                        "required" => true,
-                    ],
-                    "employee-name" => [
-                        "name" => 'employee-name',
-                        "label" => "Employee name",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "required" => true,
-                    ],
-                    "department" => [
-                        'name' => 'department-name',
-                        "label" => "Department name",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "required" => true,
-                    ],
-                    "machine-name" => [
-                        'name' => 'machine-name',
-                        "label" => "Machine/Equipment name",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                    ],
-                    "machine-id" => [
-                        'name' => 'machine-id',
-                        "label" => "Machine/Equipment ID ('optional')",
-                        "type" => "text",
-                        "rules" => ["nullable", "max:255"],
-                    ],
-                    "problem-description" => [
-                        "name" => 'problem-desccription',
-                        "label" => "Problem Description",
-                        "type" => "textarea",
-                        "rules" => ["required", "max:2048"],
-                        "required" => true,
-                    ],
-                    "urgency-level" => [
-                        "name" => 'urgency-level',
-                        "label" => "Urgency level",
-                        "type" => "radio",
-                        "options" => [
-                            "Low (Minor issue, no impact on workflow)",
-                            "Medium (slows work but still operational)",
-                            "High (Machine not operational)",
-                        ],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "supervisor-notify" => [
-                        "label" => "Has Supervisor Been Notified?",
-                        "type" => "radio",
-                        "options" => ["Yes", "No"],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "submitted-by" => [
-                        "name" => 'submitted-by',
-                        "label" => "Submitted by ",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "required" => true,
-                    ],
-                ],
-            ],
-            "new-course" => [
-                "title" => "Add New Course Form",
-                "description" => "Demo Form",
-                "fields" => [
-                    "email" => [
-                        "label" => "Email",
-                        "type" => "email",
-                        "rules" => [
-                            "required",
-                            "email",
-                            'regex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/',
-                        ],
-                        "placeholder" => "Enter email",
-                        "required" => true,
-                    ],
-                    "name" => [
-                        "label" => "Course name",
-                        "type" => "textarea",
-                        "rules" => ["required", "max:255"],
-                        "required" => true,
-                    ],
-
-                    "date" => [
-                        "label" => "Hard Expiry Date",
-                        "type" => "date",
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-
-                    "valid" => [
-                        "label" => "Default Valid Period",
-                        "type" => "date", //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
-                        "rules" => ["nullable"],
-                    ],
-                    "logo" => [
-                        "label" => "Attach a file",
-                        "type" => "file",
-                        "rules" => ["nullable", "file", "max:2048"],
-                        "required" => false,
-                    ],
-                    "type" => [
-                        "label" => "Type of course",
-                        "type" => "select",
-                        "options" => [
-                            "Policies",
-                            "Toolbox Talks",
-                            "Manitoba SAFE Work Courses",
-                        ],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "website" => [
-                        "label" => "Link to website",
-                        "type" => "url",
-                        "rules" => ["nullable", "url"],
-                        "required" => false,
-                        "placeholder" => "Example: https://example.com",
-                    ],
-                    "attachment" => [
-                        "label" => "Attach a file",
-                        "type" => "file",
-                        "rules" => ["nullable", "file", "max:2048"],
-                        "required" => false,
-                    ],
-                ],
-            ],
-            default => abort(404),
-        };
+        return $config;
     }
     protected function extractFieldsWithType($formConfig)
     {
@@ -385,24 +79,17 @@ class UserFormController extends Controller
 
     public function index()
     {
-        // Manually fill in the list of all available forms, in the future if the forms are stored in a separate file or database, the list will be dynamic
-        $formKeys = [
-            "external-access-request",
-            "new-employee",
-            "new-course",
-            "maintenance-request-form",
-        ];
+       // Retrieve all forms key and other information
+       $allForms = config('forms', []);
 
-        // Get forms config
-        $forms = [];
-        foreach ($formKeys as $key) {
-            $config = $this->getFormConfig($key);
-            $forms[] = [
+        // Get forms config key and name with description
+        $forms = collect($allForms)->map(function ($form, $key){
+            return [
                 'key' => $key,
-                'title' => $config['title'] ?? "Untitled Form",
-                'description' => $config['description'] ?? '',
+                'title' => $form['title'] ?? "Untitled Form",
+                'description' => $form['description'] ?? '',
             ];
-        }
+        })->values()->all();
 
         return view('forms.index', compact('forms'));
     }
@@ -511,7 +198,7 @@ class UserFormController extends Controller
                 }
             }
 
-            //Delet duplicates
+            //Delete duplicates
             $fieldRules = array_unique($fieldRules, SORT_REGULAR);
 
             //Add rule for field
@@ -522,11 +209,9 @@ class UserFormController extends Controller
     public function submit(Request $request, $formKey)
     {
         $formConfig = $this->extractFieldsWithType(
-            $this->getFormConfig($formKey),
+            ($formConfig = $this->getFormConfig($formKey)) ? $formConfig : abort(404, "Form Not Found")
         );
-        if (!$formConfig) {
-            abort(404, "Form Not Found");
-        }
+
         $formData = $request->all();
         $rules = $this->validateRules($formData, $formConfig);
 
@@ -543,9 +228,7 @@ class UserFormController extends Controller
             unset($validatedData['date-range-start'], $validatedData['date-range-end']);
         }
 
-        $embeddedImages = [];
-        $attachments = [];
-        $filePath = [];
+        [$embeddedImages, $attachments, $filePath] = [[], [], []];
 
         // Save upload file
         foreach ($formConfig as $name => $field) {
@@ -589,24 +272,17 @@ class UserFormController extends Controller
             json_encode($formDataWithName, JSON_PRETTY_PRINT),
         );
 
-        //store in db
-        /* Need to create table and model,
-         This code saved json string in db
-         SubmittedForm::create([
-            'form_name' => $formName ?? 'Untitled Form',
-            'form_json' => $formDataWithName,
-        ]);
-        */
-
         // Preparation data for PDF
         $logo = 'data:' . File::mimeType(storage_path('app/public/logo-96x96.png')) . ';base64,' . base64_encode(File::get(storage_path('app/public/logo-96x96.png')));
+        // Initialize an array to store cleaned and formatted data for generating the PDF
         $cleanPDFData = [];
         foreach ($validatedData as $key => $value) {
             if ($value === [] || $value === '' || $value === null) {
-                continue;
             } elseif ($key === 'embedded-images') {
+                // Skip processing for 'embedded-images' key
                 unset($cleanPDFData[$key]);
             } elseif ($key === 'files') {
+                // Transform file paths into their base names for better readability in the PDF
                 $list = [];
                 foreach ($value as $k => $item) {
                     $list[$k] = File::basename($item);
