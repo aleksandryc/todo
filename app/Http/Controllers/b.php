@@ -248,8 +248,9 @@ class UserFormController extends Controller
             $formData[$fieldName] = $filePathStr;
 
             if ($embed !== null) {
-                $embeddedImages[$name] = $embed;
+                $embeddedImages[$fieldName] = $embed;
             }
+            $attachments[] = $filePathStr;
         }
         $validatedData['files'] = $filePath;
         $validatedData['embedded-images'] = $embeddedImages;
@@ -307,7 +308,6 @@ class UserFormController extends Controller
         $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
         Storage::disk("public")->put($relativePath, $pdfContent);
         $pdfAttachmentPath = "public/" . $relativePath;
-
         Mail::to("admin@example.com")->send(
             new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
         );

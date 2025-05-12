@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Mail;
+namespace App\Mail\UserForms;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -42,7 +42,7 @@ class FormSubmissionMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.form-submission-mail',
+            markdown: 'mail.user-forms.form-submission-mail',
         );
     }
 
@@ -60,24 +60,18 @@ class FormSubmissionMail extends Mailable
                 ->as('form_submission.pdf')
                 ->withMime('application/pdf');
         }
-        foreach ($this->userAttachments as $key => $attachmentPath) {
+        foreach ($this->userAttachments as $attachmentPath) {
+            $fullPath = storage_path('app/' . $attachmentPath);
+            if (file_exists($fullPath)) {
+                $fileName = basename($fullPath);
+                $mimeType = \Illuminate\Support\Facades\File::mimeType($fullPath);
 
-            if (file_exists(storage_path($attachmentPath))) {
-                $fileName = basename((storage_path($attachmentPath)));
-                $mimeType = \Illuminate\Support\Facades\File::mimeType((storage_path($attachmentPath)));
-
-                $attachments[] = Attachment::fromPath(storage_path($attachmentPath))
+                $attachments[] = Attachment::fromPath($fullPath)
                 ->as($fileName)
                 ->withMime($mimeType);
 
             }
         }
-
         return $attachments;
-    }
-
-    public function build()
-    {
-        return $this->view('mail.form-submission-mail')->subject('New Form Submitted');
     }
 }
