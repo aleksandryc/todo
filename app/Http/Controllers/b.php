@@ -316,3 +316,146 @@ class UserFormController extends Controller
         return redirect('/')->with('message', 'Form successfully submitted!');
     }
 }
+
+
+
+protected function validateRules($formData, $formConfig)
+    {
+        $rules = [];
+        $messages = []; // Array for custom messages
+
+        foreach ($formConfig as $name => $field) {
+            // Get default rules for field
+            $fieldRules = $this->getDefaultRules($field);
+
+            // Apply user rules if exist
+            if (!empty($field["rules"])) {
+                $fieldRules = array_merge($fieldRules, $field["rules"]);
+            }
+
+            // Apply conditional rules
+            $conditionalRules = $this->getConditionalRules($field, $formData);
+            $fieldRules = array_merge($fieldRules, $conditionalRules);
+
+            // Delete duplicates
+            $fieldRules = array_unique($fieldRules);
+
+            // Add rules for fielld
+            $rules[$name] = $fieldRules;
+
+            // Add custom messages if created
+            if (isset($field['messages'])) {
+                foreach ($field['messages'] as $rule => $message) {
+                    $messages[$name . '.' . $rule] = $message;
+                }
+            }
+        }
+
+        return [
+            'rules' => $rules,
+            'messages' => $messages,
+        ];
+    }
+
+    protected function getDefaultRules($field)
+    {
+        $rules = [];
+        switch ($field["type"]) {
+            case "radio":
+                $fieldRules = ["nullable", "boolean"];
+                break;
+            case "select":
+                $fieldRules = [
+                    $field["required"] ? "required" : "nullable",
+                    Rule::in($field["options"]),
+                ];
+                break;
+            case "email":
+                $fieldRules = [
+                    $field["required"] ? "required" : "nullable",
+                    "email",
+                ];
+                break;
+            case "file":
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? ["required", "file", "max:5120"]
+                    : ["nullable", "file", "max:5120"];
+                break;
+            case "checkbox":
+                $fieldRules = ["nullable", "accepted", "boolean"];
+                break;
+            case "checkbox-group":
+                $fieldRules = [
+                    "nullable",
+                    "array",
+                    Rule::in($field["options"]),
+                ];
+                break;
+            case "date":
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? ["required", "date"]
+                    : ["nullable", "date"];
+                break;
+            case "textarea":
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? ["required", "string", "max:1000"]
+                    : ["nullable", "string", "max:1000"];
+                break;
+            case "tel":
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? [
+                        "required",
+                        'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+                    ]
+                    : [
+                        "nullable",
+                        'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+                    ];
+                break;
+            case "url":
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? ["required", "url"]
+                    : ["nullable", "url"];
+                break;
+            default:
+                $fieldRules =
+                    isset($field["required"]) && $field["required"]
+                    ? ["required", "string", "max:255"]
+                    : ["nullable", "string", "max:255"];
+                break;
+        }
+        return $rules;
+    }
+
+    protected function getConditionalRules($field, $formData)
+    {
+        $conditionalRules = [];
+
+        if (isset($field["conditional-rules"]["when"])) {
+            $condition = $field["conditional-rules"]["when"];
+            $dependentField = $condition["field"];
+            $dependentValue = $condition["value"];
+        }
+
+        //For chexbox-group
+        $actualValue = isset($formData[$dependentField])
+            ? $formData[$dependentField]
+            : null;
+
+        if (is_array($actualValue)) {
+            $conditionMet = in_array($dependentValue, $actualValue);
+        } else {
+            $conditionMet = $actualValue === $dependentValue;
+        }
+
+        if ($conditionMet && isset($condition['rules'])) {
+            $conditionalRules = $condition['rules'];
+        }
+
+        return $conditionalRules;
+    }
