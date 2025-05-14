@@ -4,44 +4,54 @@ namespace App\Http\Controllers;
 
 use App\Mail\UserForms\FormSubmissionMail;
 use App\Services\UserForm\FormConfigServices;
+use App\Services\UserForm\FormOutputServices;
 use App\Services\UserForm\FormRulesServices;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\File;
-use Mail;
-use Storage;
-use Str;
+use Illuminate\Support\Facades\Mail as FacadesMail;
 
+/**
+ * Controller for managing user form submissions.
+ */
 class UserFormController extends Controller
 {
     protected $formConfigServices;
     protected $formRulesService;
+    protected $formOutputServices;
 
-    public function __construct(FormConfigServices $formConfigServices, FormRulesServices $formRulesService)
+    /**
+     * Constructor to initialize services.
+     *
+     * @param FormConfigServices $formConfigServices Handles form configurations.
+     * @param FormRulesServices $formRulesService Handles validation rules.
+     * @param FormOutputServices $formOutputServices Handles form output processing.
+     */
+    public function __construct(FormConfigServices $formConfigServices, FormRulesServices $formRulesService, FormOutputServices $formOutputServices)
     {
         $this->formConfigServices = $formConfigServices;
         $this->formRulesService = $formRulesService;
+        $this->formOutputServices = $formOutputServices;
     }
 
-    protected function handleUploadFile($file, $name)
+    /**
+     * Display a list of available forms.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function index()
     {
-        $fileName = Str::random(16) . '.' . $file->getClientOriginalExtension();
-        $filePathStr = $file->storeAs('/attachments', $fileName, 'public');
-
-        $fullPath = storage_path('app/public/' . $filePathStr);
-        $embed = null;
-
-        if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
-            $mimeType = File::mimeType($fullPath);
-            $embed = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-        }
-
-        return [$filePathStr, $embed];
+        $forms = $this->formConfigServices->getAllForms();
+        return view('forms.index', compact('forms'));
     }
 
+    /**
+     * Show the form submission page.
+     *
+     * @param string $formKey The form identifier.
+     * @return \Illuminate\View\View
+     */
     public function show($formKey)
     {
-        // Get form name from url
+        // Retrieve form configuration
         $formConfig = $this->formConfigServices->getFormConfig($formKey);
 
         return view("forms.show", [
@@ -51,34 +61,33 @@ class UserFormController extends Controller
         ]);
     }
 
-    public function index()
-    {
-        $forms = $this->formConfigServices->getAllForms();
-        return view('forms.index', compact('forms'));
-    }
-
+    /**
+     * Handle form submission and processing.
+     *
+     * @param Request $request The request object containing user inputs.
+     * @param string $formKey The form identifier.
+     * @return \Illuminate\Http\RedirectResponse Redirects to the main page after submission.
+     */
     public function submit(Request $request, $formKey)
     {
+        $formData = $request->all();
         $formComponents = $this->formConfigServices->getFormConfig($formKey);
         $formConfig = $this->formConfigServices->extractFieldsWithType($formComponents);
 
-        $formData = $request->all();
+        // Validate form input
         $rules = $this->formRulesService->validateRules($formData, $formConfig);
         $validatedData = $this->formRulesService->validator($formData, $rules);
+
+        // Redirect if validation fails
         if ($validatedData instanceof \Illuminate\Validation\Validator && $validatedData->fails()) {
             return redirect()->back()->withErrors($validatedData)->withInput();
         }
 
-        [$embeddedImages, $attachments, $filePath] = [[], [], []];
+        [$embeddedImages, $attachments] = [[], []];
 
-        // Save upload file
-        foreach ($formConfig as $name => $field) {
-            if ($field['type'] === 'checkbox-group' && !isset($validatedData[$name])) {
-                unset($validatedData[$name]);
-            }
-        }
+        // Handle file uploads
         foreach ($request->allFiles() as $fieldName => $file) {
-            [$filePathStr, $embed] = $this->handleUploadFile($file, $fieldName);
+            [$filePathStr, $embed] = $this->formOutputServices->handleUploadFile($file);
             $formData[$fieldName] = $filePathStr;
 
             if ($embed !== null) {
@@ -86,77 +95,26 @@ class UserFormController extends Controller
             }
             $attachments[] = $filePathStr;
         }
-        $validatedData['files'] = $filePath;
-        $validatedData['embedded-images'] = $embeddedImages;
 
-        //Stoere in JSON
+        // Store form data as JSON
         $formName = $formComponents['title'] ?? 'Default form name';
-        $jsonPath = storage_path("app/public/forms/");
-        $formDataWithName = [
-            "form_name" => $formName,
-            "submitted_at" => now()->toDayDateTimeString(),
-            "fields" => $validatedData,
-        ];
-        if (!File::exists($jsonPath)) {
-            File::makeDirectory($jsonPath, 0755, true);
-        }
-        $fileName = "form_" . now()->format("Ymd_His") . ".json";
-        File::put(
-            $jsonPath . $fileName,
-            json_encode($formDataWithName, JSON_PRETTY_PRINT),
-        );
+        $this->formOutputServices->storeFormDataAsJson($formName, $validatedData);
 
-        //store in db
-        /* Need to create table and model,
-         This code saved json string in db
+        // Generate a PDF for submission
+        $pdfForEmail = $this->formOutputServices->generatePdf($formName, $validatedData, $embeddedImages);
+
+        // Send confirmation email with attachments
+        FacadesMail::to("admin@example.com")->send(new FormSubmissionMail($pdfForEmail[0], $pdfForEmail[1], $attachments));
+
+        return redirect('/')->with('message', 'Form successfully submitted!');
+
+        // Store in database (Needs table and model setup)
+        /*
+         This code will save the form submission as a JSON string in the database:
          SubmittedForm::create([
             'form_name' => $formName ?? 'Untitled Form',
-            'form_json' => $formDataWithName,
+            'form_json' => json_encode($validatedData, JSON_PRETTY_PRINT),
         ]);
         */
-
-        // Preparation data for PDF
-        $logo = 'data:' . File::mimeType(storage_path('app/public/logo-96x96.png')) . ';base64,' . base64_encode(File::get(storage_path('app/public/logo-96x96.png')));
-        // Initialize an array to store cleaned and formatted data for generating the PDF
-        $cleanPDFData = [];
-        foreach ($validatedData as $key => $value) {
-            if ($value === [] || $value === '' || $value === null) {
-                continue;
-            } elseif ($key === 'embedded-images') {
-                // Skip processing for 'embedded-images' key
-                unset($cleanPDFData[$key]);
-            } elseif ($key === 'files') {
-                // Transform file paths into their base names for better readability in the PDF
-                $list = [];
-                foreach ($value as $k => $item) {
-                    $list[$k] = File::basename($item);
-                }
-                $cleanPDFData[$key] = $list;
-            } else {
-                $cleanPDFData[$key] = $value;
-            }
-        };
-        $pdfData = [
-            "title" => $formName,
-            'logo' => $logo,
-            'description' => $formComponents['description'] ?? '',
-            "fields" => $cleanPDFData,
-            "embeddedImages" => $embeddedImages,
-        ];
-
-        // Generate PDF
-        $pdf = Pdf::setPaper('a4')->loadView("forms.pdf", $pdfData)->setOptions(["isRemoteEnabled" => true]);
-
-        // Save PDF in file
-        $pdfContent = $pdf->output();
-        $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
-        Storage::disk("public")->put($relativePath, $pdfContent);
-        $pdfAttachmentPath = "public/" . $relativePath;
-        Mail::to("admin@example.com")->send(
-            new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
-        );
-
-        //return $pdf->stream("form_submission.pdf");
-        return redirect('/')->with('message', 'Form successfully submitted!');
     }
 }

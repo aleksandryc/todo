@@ -35,7 +35,7 @@ class FormRulesServices
 
         switch ($field["type"]) {
             case "radio":
-                return [$required ? "required" : "nullable", "boolean"];
+                return [$required ? "required" : "nullable"];
             case "select":
                 return [
                     $required ? "required" : "nullable",
@@ -45,8 +45,8 @@ class FormRulesServices
                 return [$required ? "required" : "nullable", "email"];
             case "file":
                 return $required
-                    ? ["required", "file", "max:5120"]
-                    : ["nullable", "file", "max:5120"];
+                    ? ["required", "file", 'mimes:jpg, jpeg, png, pdf, doc, docs, xls, xlsx', "max:5120"]
+                    : ["nullable", "file", 'mimes:jpg, jpeg, png, pdf, doc, docs, xls, xlsx', "max:5120"];
             case "checkbox":
                 return [$required ? "required" : "nullable", "accepted", "boolean"];
             case "checkbox-group":
