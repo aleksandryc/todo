@@ -105,8 +105,8 @@
             <p v-if="errors[name]" class="mt-1 text-sm text-red-500">{{ errors[name][0] }}</p>
         </div>
         <div class="flex justify-between">
-            <button type="submit" class="bg-green-700 px-4 py-2 text-white">Send</button>
-            <button type="reset" class="bg-red-800 px-4 py-2 text-white">Clear form</button>
+            <button type="submit" class="bg-seagreen-700 px-4 py-2 text-white">Send</button>
+            <button type="reset" class="bg-coral-800 px-4 py-2 text-white">Clear form</button>
         </div>
     </form>
 </template>

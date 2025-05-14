@@ -2,264 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\FormSubmissionMail;
-use App\Models\SubmittedForm;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Mail\UserForms\FormSubmissionMail;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use \Illuminate\Support\Str;
-
+use Mail;
+use Storage;
+use Str;
 
 class UserFormController extends Controller
 {
     protected function getFormConfig($formKey)
     {
-        /*
-        For example, few forms have been added to the controller, but if necessary,
-        they can be moved to a separate file or use a database.
-        */
-        return match ($formKey) {
-            "external-access-request" => [
-                "title" => "External Access Request",
-                "description" =>
-                "To request an employee be granted external access to company information when outside of Elias Woodwork’s facilities please fill in the following and submit to HR for approval. If a mobile phone or laptop is required, please note that in the devices section. ",
-                "fields" => [
-                    "names-group" => [
-                        "supervisor" => [
-                            "name" => "supervisor",
-                            "label" => "Supervisor",
-                            "type" => "text",
-                            "rules" => ["required", "max:255"],
-                            "placeholder" => "Enter Full name",
-                            "required" => true,
-                        ],
-                        "employee" => [
-                            "name" => "employee",
-                            "label" => "Employee",
-                            "type" => "text",
-                            "rules" => ["required", "max:255"],
-                            "placeholder" => "Enter Full name",
-                            "required" => true,
-                        ],
-                    ],
-                    "access-type" => [
-                        "name" => "access-type",
-                        "label" => "Type of Access (Check all that apply) ",
-                        "type" => "checkbox-group",
-                        "options" => [
-                            "External Email Access",
-                            "External VPN Access",
-                        ],
-                        "rules" => [
-                            "required",
-                            "array",
-                            Rule::in([
-                                "External Email Access",
-                                "External VPN Access",
-                            ]),
-                        ],
-                        "required" => true,
-                    ],
-                    [
-                        "Device-used-email" => [
-                            "label" =>
-                            "Devices being used (MFA requires mobile phone): ",
-                            "type" => "text",
-
-                            "placeholder" => "MFA requires mobile phone",
-                            "conditional-rules" => [
-                                "when" => [
-                                    "field" => "access-type",
-                                    "value" => "External Email Access",
-                                    "rules" => ["required", "max:255"],
-                                ],
-                            ],
-                        ],
-                        "device-used-vpn" => [
-                            "label" => "Devices being used: ",
-                            "type" => "text",
-
-                            "placeholder" => "MFA requires mobile phone",
-                            "conditional-rules" => [
-                                "when" => [
-                                    "field" => "access-type",
-                                    "value" => "External VPN Access",
-                                    "rules" => ["required", "max:255"],
-                                ],
-                            ],
-                        ],
-                    ],
-                    "date-range-start" => [
-                        "label" =>
-                        "Timeframe of approval (Provide start) ",
-                        "type" => "date",
-                        "rules" => ["nullable", "date"],
-                        "conditional-rules" => [
-                            "when" => [
-                                "field" => "permanent",
-                                "value" => false,
-                                "rules" => ["required", "date"],
-                            ],
-                        ],
-                    ],
-                    "date-range-end" => [
-                        "label" =>
-                        "Timeframe of approval (Provide end dates) ",
-                        "type" => "date",
-                        "rules" => [
-                            "nullable",
-                            "date",
-                            "after_or_equal:date-range-start",
-                        ],
-                        "required" => false,
-                        "conditional-rules" => [
-                            "when" => [
-                                "field" => "permanent",
-                                "value" => false,
-                                "rules" => ["required", "date"],
-                            ],
-                        ],
-                    ],
-                    "permanent" => [
-                        "label" =>
-                        "Timeframe of approval (or “Permanent”) ",
-                        "type" => "checkbox",
-                        'options' => 'permanent',
-                        "rules" => ["nullable", "boolean"],
-                        "required" => false,
-                    ],
-                    "reason" => [
-                        "label" =>
-                        "Reason (Provide a brief description of why this is needed)",
-                        "type" => "textarea",
-                        "required" => true,
-                    ],
-                ],
-            ],
-            "new-employee" => [
-                "title" => "Add New Employee Form",
-                "description" => "Demo Form",
-                "fields" => [
-                    "name" => [
-                        "label" => "Full name",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "placeholder" => "Enter Full name",
-                    ],
-                    "shift" => [
-                        "label" => "Shift",
-                        "type" => "select",
-                        "options" => [
-                            "Morden Day",
-                            "Morden Evening",
-                            "Office",
-                            "Winkler Day",
-                            "Winkler Evening",
-                            "Driver",
-                            "Cleaning",
-                        ],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "phone" => [
-                        "label" => "Phone",
-                        "type" => "tel",
-                        "rules" => [
-                            "required",
-                            'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
-                        ],
-                        "placeholder" => "Enter phone number",
-                    ],
-                    "status" => [
-                        "label" => "Active",
-                        "type" => "radio",
-                        "options" => ["Yes", "No"],
-                        "rules" => ["required"],
-                    ],
-                    "supervisor" => [
-                        "label" => "Supervisor",
-                        "type" => "text",
-                        "rules" => ["required", "max:255"],
-                        "placeholder" => "Enter Full name of supervisor",
-                    ],
-                    "file" => [
-                        "label" => "Photo",
-                        "type" => "file",
-                    ],
-                ],
-            ],
-            "new-course" => [
-                "title" => "Add New Course Form",
-                "description" => "Demo Form",
-                "fields" => [
-                    "email" => [
-                        "label" => "Email",
-                        "type" => "email",
-                        "rules" => [
-                            "required",
-                            "email",
-                            'regex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/',
-                        ],
-                        "placeholder" => "Enter email",
-                        "required" => true,
-                    ],
-                    "name" => [
-                        "label" => "Course name",
-                        "type" => "textarea",
-                        "rules" => ["required", "max:255"],
-                        "required" => true,
-                    ],
-
-                    "date" => [
-                        "label" => "Hard Expiry Date",
-                        "type" => "date",
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-
-                    "valid" => [
-                        "label" => "Default Valid Period",
-                        "type" => "date", //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
-                        "rules" => ["nullable"],
-                    ],
-                    "logo" => [
-                        "label" => "Attach a file",
-                        "type" => "file",
-                        "rules" => ["nullable", "file", "max:2048"],
-                        "required" => false,
-                    ],
-                    "type" => [
-                        "label" => "Type of course",
-                        "type" => "select",
-                        "options" => [
-                            "Policies",
-                            "Toolbox Talks",
-                            "Manitoba SAFE Work Courses",
-                        ],
-                        "rules" => ["required"],
-                        "required" => true,
-                    ],
-                    "website" => [
-                        "label" => "Link to website",
-                        "type" => "url",
-                        "rules" => ["nullable", "url"],
-                        "required" => false,
-                        "placeholder" => "Example: https://example.com",
-                    ],
-                    "attachment" => [
-                        "label" => "Attach a file",
-                        "type" => "file",
-                        "rules" => ["nullable", "file", "max:2048"],
-                        "required" => false,
-                    ],
-                ],
-            ],
-            default => abort(404),
-        };
+        return config("forms.$formKey") ?? abort(404, 'Form Not Found');
     }
     protected function extractFieldsWithType($formConfig)
     {
@@ -299,14 +56,28 @@ class UserFormController extends Controller
 
         return $result;
     }
+
+    protected function handleUploadFile($file, $name)
+    {
+        $fileName = Str::random(16) . '.' . $file->getClientOriginalExtension();
+        $filePathStr = $file->storeAs('/attachments', $fileName, 'public');
+
+        $fullPath = storage_path('app/public/' . $filePathStr);
+        $embed = null;
+
+        if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
+            $mimeType = File::mimeType($fullPath);
+            $embed = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
+        }
+
+        return [$filePathStr, $embed];
+    }
+
     public function show($formKey)
     {
         // Get form name from url
         $formConfig = $this->getFormConfig($formKey);
 
-        if (!$formConfig) {
-            abort(404, "Form not found");
-        }
         return view("forms.show", [
             "formKey" => $formKey,
             "formConfig" => $formConfig,
@@ -316,107 +87,79 @@ class UserFormController extends Controller
 
     public function index()
     {
-        // Manually fill in the list of all available forms, in the future if the forms are stored in a separate file or database, the list will be dynamic
-        $formKeys = [
-            "external-access-request",
-            "new-employee",
-            "new-course",
-        ];
+        // Retrieve all forms key and other information
+        $allForms = config('forms', []);
 
-        // Get forms config
-        $forms = [];
-        foreach ($formKeys as $key) {
-            $config = $this->getFormConfig($key);
-            $forms[] = [
+        // Get forms config key and name with description
+        $forms = collect($allForms)->map(function ($form, $key) {
+            return [
                 'key' => $key,
-                'title' => $config['title'] ?? "Untitled Form",
-                'description' => $config['description'] ?? '',
+                'title' => $form['title'] ?? "Untitled Form",
+                'description' => $form['description'] ?? '',
             ];
-        }
+        })->values()->all();
 
         return view('forms.index', compact('forms'));
     }
+    protected function defaultRules(array $field)
+    {
+        $required = !empty($field["required"]);
+        switch ($field["type"]) {
+            case "radio":
+                return [$required ? "required" : "nullable", "boolean"];
+            case "select":
+                return [
+                    $required ? "required" : "nullable",
+                    Rule::in($field["options"] ?? []),
+                ];
+            case "email":
+                return [$required ? "required" : "nullable", "email"];
+            case "file":
+                return $required
+                    ? ["required", "file", "max:5120"]
+                    : ["nullable", "file", "max:5120"];
+            case "checkbox":
+                return [$required ? "required" : "nullable", "accepted", "boolean"];
+            case "checkbox-group":
+                return [
+                    $required ? "required" : "nullable",
+                    "array",
+                    Rule::in($field["options"] ?? []),
+                ];
+            case "date":
+                return $required
+                    ? ["required", "date"]
+                    : ["nullable", "date"];
+            case "textarea":
+                return $required
+                    ? ["required", "string", "max:1000"]
+                    : ["nullable", "string", "max:1000"];
+            case "tel":
+                $regex = 'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/';
+                return $required
+                    ? ["required", $regex]
+                    : ["nullable", $regex];
+            case "url":
+                return $required
+                    ? ["required", "url"]
+                    : ["nullable", "url"];
+            default:
+                return $required
+                    ? ["required", "string", "max:255"]
+                    : ["nullable", "string", "max:255"];
+        }
+    }
 
-    protected function validateRules($formData, $formConfig)
+    protected function validateRules(array $formData, array $formConfig)
     {
         $rules = [];
+
         foreach ($formConfig as $name => $field) {
-            $fieldRules = [];
-            //Use existing rules
-            if (!empty($field["rules"])) {
-                $fieldRules = $field["rules"];
-            } else {
-                //Automated generated rules, if 'rules' dose not exist
-                switch ($field["type"]) {
-                    case "radio":
-                        $fieldRules = ["nullable", "boolean"];
-                        break;
-                    case "select":
-                        $fieldRules = [
-                            $field["required"] ? "required" : "nullable",
-                            Rule::in($field["options"]),
-                        ];
-                        break;
-                    case "email":
-                        $fieldRules = [
-                            $field["required"] ? "required" : "nullable",
-                            "email",
-                        ];
-                        break;
-                    case "file":
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? ["required", "file", "max:5120"]
-                            : ["nullable", "file", "max:5120"];
-                        break;
-                    case "checkbox":
-                        $fieldRules = ["nullable", "accepted", "boolean"];
-                        break;
-                    case "checkbox-group":
-                        $fieldRules = [
-                            "nullable",
-                            "array",
-                            Rule::in($field["options"]),
-                        ];
-                        break;
-                    case "date":
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? ["required", "date"]
-                            : ["nullable", "date"];
-                        break;
-                    case "textarea":
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? ["required", "string", "max:1000"]
-                            : ["nullable", "string", "max:1000"];
-                        break;
-                    case "tel":
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? [
-                                "required",
-                                'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
-                            ]
-                            : [
-                                "nullable",
-                                'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
-                            ];
-                        break;
-                    case "url":
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? ["required", "url"]
-                            : ["nullable", "url"];
-                        break;
-                    default:
-                        $fieldRules =
-                            isset($field["required"]) && $field["required"]
-                            ? ["required", "string", "max:255"]
-                            : ["nullable", "string", "max:255"];
-                        break;
-                }
-            }
+            // Use custom rules if provided; otherwise generate default rules
+            $fieldRules = !empty($field["rules"])
+                ? $field["rules"]
+                : $this->defaultRules($field);
+
             //Add conditional rules if applicable
             if (isset($field["conditional-rules"]["when"])) {
                 $condition = $field["conditional-rules"]["when"];
@@ -441,7 +184,7 @@ class UserFormController extends Controller
                 }
             }
 
-            //Delet duplicates
+            //Delete duplicates
             $fieldRules = array_unique($fieldRules, SORT_REGULAR);
 
             //Add rule for field
@@ -451,12 +194,9 @@ class UserFormController extends Controller
     }
     public function submit(Request $request, $formKey)
     {
-        $formConfig = $this->extractFieldsWithType(
-            $this->getFormConfig($formKey),
-        );
-        if (!$formConfig) {
-            abort(404, "Form Not Found");
-        }
+        $formComponents = $this->getFormConfig($formKey);
+        $formConfig = $this->extractFieldsWithType($formComponents);
+
         $formData = $request->all();
         $rules = $this->validateRules($formData, $formConfig);
 
@@ -473,31 +213,22 @@ class UserFormController extends Controller
             unset($validatedData['date-range-start'], $validatedData['date-range-end']);
         }
 
-        $embeddedImages = [];
-        $attachments = [];
-        $filePath = [];
+        [$embeddedImages, $attachments, $filePath] = [[], [], []];
 
         // Save upload file
         foreach ($formConfig as $name => $field) {
             if ($field['type'] === 'checkbox-group' && !isset($validatedData[$name])) {
                 unset($validatedData[$name]);
             }
-            if ($field['type'] === 'file' && $request->hasFile($name)) {
-                $uploadedfile = $request->file($name);
-                $fileName = Str::random(16) . '.' . $uploadedfile->getClientOriginalExtension();
-                $filePathStr = $uploadedfile->storeAs('attachments', $fileName, 'public');
-                $filePath[$name] = $filePathStr; //Adding file path to form
+        }
+        foreach ($request->allFiles() as $fieldName => $file) {
+            [$filePathStr, $embed] = $this->handleUploadFile($file, $fieldName);
+            $formData[$fieldName] = $filePathStr;
 
-                $fullPath = storage_path('app/public/' . $filePathStr);
-                $attachments[$name] = 'app/public/attachments/' . $fileName;
-
-                //Prepare embedded image
-                if (Str::startsWith(File::mimeType($fullPath), 'image/')) {
-                    $mimeType = File::mimeType($fullPath);
-                    $base64 = 'data:' . $mimeType . ';base64,' . base64_encode(File::get($fullPath));
-                    $embeddedImages[$name] = $base64;
-                }
+            if ($embed !== null) {
+                $embeddedImages[$fieldName] = $embed;
             }
+            $attachments[] = $filePathStr;
         }
         $validatedData['files'] = $filePath;
         $validatedData['embedded-images'] = $embeddedImages;
@@ -518,27 +249,18 @@ class UserFormController extends Controller
             $jsonPath . $fileName,
             json_encode($formDataWithName, JSON_PRETTY_PRINT),
         );
-
-        //store in db
-        SubmittedForm::create([
-            'form_name' => $formName ?? 'Untitled Form',
-            'form_json' => $formDataWithName,
-        ]);
-
-
         // Preparation data for PDF
-        $logoPath = storage_path('app/public/logo-96x96.png');
-        $logo = File::exists($logoPath)
-            ? 'data:' . File::mimeType($logoPath) . ';base64,' . base64_encode(File::get($logoPath))
-            : null;
-
+        $logo = 'data:' . File::mimeType(storage_path('app/public/logo-96x96.png')) . ';base64,' . base64_encode(File::get(storage_path('app/public/logo-96x96.png')));
+        // Initialize an array to store cleaned and formatted data for generating the PDF
         $cleanPDFData = [];
         foreach ($validatedData as $key => $value) {
             if ($value === [] || $value === '' || $value === null) {
                 continue;
             } elseif ($key === 'embedded-images') {
+                // Skip processing for 'embedded-images' key
                 unset($cleanPDFData[$key]);
             } elseif ($key === 'files') {
+                // Transform file paths into their base names for better readability in the PDF
                 $list = [];
                 foreach ($value as $k => $item) {
                     $list[$k] = File::basename($item);
@@ -557,20 +279,18 @@ class UserFormController extends Controller
         ];
 
         // Generate PDF
-        $pdf = Pdf::setPaper('a4')->loadView("forms.pdf", $pdfData);
-        $pdf->setOptions(["isRemoteEnabled" => true]);
+        $pdf = Pdf::setPaper('a4')->loadView("forms.pdf", $pdfData)->setOptions(["isRemoteEnabled" => true]);
 
         // Save PDF in file
         $pdfContent = $pdf->output();
         $relativePath = "pdf/form_" . now()->format("Ymd_His") . ".pdf";
         Storage::disk("public")->put($relativePath, $pdfContent);
         $pdfAttachmentPath = "public/" . $relativePath;
-
         Mail::to("admin@example.com")->send(
             new FormSubmissionMail($pdfData, $pdfAttachmentPath, $attachments),
         );
 
         //return $pdf->stream("form_submission.pdf");
-        return redirect()->back()->with('message', 'Form successfully submitted!');
+        return redirect('/')->with('message', 'Form successfully submitted!');
     }
 }
