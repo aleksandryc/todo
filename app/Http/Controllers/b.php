@@ -90,7 +90,7 @@ class UserFormController extends Controller
         $validatedData['embedded-images'] = $embeddedImages;
 
         //Stoere in JSON
-        $formName = $this->formConfigServices->getFormConfig($formKey)['title'] ?? 'Default form name';
+        $formName = $formComponents['title'] ?? 'Default form name';
         $jsonPath = storage_path("app/public/forms/");
         $formDataWithName = [
             "form_name" => $formName,
@@ -139,7 +139,7 @@ class UserFormController extends Controller
         $pdfData = [
             "title" => $formName,
             'logo' => $logo,
-            'description' => $this->formConfigServices->getFormConfig($formKey)['description'] ?? '',
+            'description' => $formComponents['description'] ?? '',
             "fields" => $cleanPDFData,
             "embeddedImages" => $embeddedImages,
         ];
