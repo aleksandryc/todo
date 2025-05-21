@@ -16,14 +16,19 @@ class FormSubmissionMail extends Mailable
     public $data;
     public $pdfPath;
     public $userAttachments;
+    public $mailRecipients;
+    public $ccRecipients;
+
     /**
      * Create a new message instance.
      */
-    public function __construct($pdfData, $pdfPath, $userAttachments = [])
+    public function __construct($pdfData, $pdfPath, $userAttachments = [], $mailRecipients = [], $ccRecipients = [])
     {
         $this->data = $pdfData;
         $this->pdfPath = $pdfPath;
         $this->userAttachments = $userAttachments;
+        $this->mailRecipients = $mailRecipients;
+        $this->ccRecipients = $ccRecipients;
     }
 
     /**
@@ -32,6 +37,8 @@ class FormSubmissionMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            to: 'aleksandrb@eliaswoodwork.com',
+            cc: '',
             subject: 'Form Submission Mail',
         );
     }

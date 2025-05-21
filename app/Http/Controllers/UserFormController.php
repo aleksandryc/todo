@@ -70,6 +70,9 @@ class UserFormController extends Controller
      */
     public function submit(Request $request, $formKey)
     {
+        $mailRecipients = [$request->mailRecipient];
+        $ccRecipients = $request->ccRecipient ? array_map('trim', explode(',', $request->ccRecipient)) : [];
+
         $formData = $request->all();
         $formComponents = $this->formConfigServices->getFormConfig($formKey);
         $formConfig = $this->formConfigServices->extractFieldsWithType($formComponents);
@@ -104,7 +107,7 @@ class UserFormController extends Controller
         $pdfForEmail = $this->formOutputServices->generatePdf($formName, $validatedData, $embeddedImages);
 
         // Send confirmation email with attachments
-        FacadesMail::to("admin@example.com")->send(new FormSubmissionMail($pdfForEmail[0], $pdfForEmail[1], $attachments));
+        FacadesMail::send(new FormSubmissionMail($pdfForEmail[0], $pdfForEmail[1], $attachments, $mailRecipients, $ccRecipients));
 
         return redirect('/')->with('message', 'Form successfully submitted!');
 
