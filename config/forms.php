@@ -49,7 +49,10 @@ return [
                     "label" =>
                     "Devices being used (MFA requires mobile phone): ",
                     "type" => "text",
-
+                    'depends_on' => [
+                        'field' => 'access-type[]',
+                        'disable_when' => 'External Email Access',
+                    ],
                     "placeholder" => "MFA requires mobile phone",
                     "conditional-rules" => [
                         "when" => [
@@ -62,7 +65,10 @@ return [
                 "device-used-vpn" => [
                     "label" => "Devices being used: ",
                     "type" => "text",
-
+                    'depends_on' => [
+                        'field' => 'access-type[]',
+                        'disable_when' => 'External VPN Access',
+                    ],
                     "placeholder" => "MFA requires mobile phone",
                     "conditional-rules" => [
                         "when" => [
@@ -115,6 +121,10 @@ return [
                 'options' => 'permanent',
                 "rules" => ["nullable", "boolean"],
                 "required" => false,
+                'depends_on' => [
+                    'field' => 'date-range-end',
+                    'disable_when' => 'filled',
+                ],
             ],
             "reason" => [
                 "label" =>
@@ -125,7 +135,7 @@ return [
         ],
     ],
     "new-employee" => [
-        "title" => "Add New Employee Form",
+        "title" => "DEMO Add New Employee Form",
         "description" => "Demo Form",
         "fields" => [
             "name" => [
@@ -177,7 +187,7 @@ return [
         ],
     ],
     "maintenance-request-form" => [
-        "title" => "Maintenance Request Form",
+        "title" => "DEMO Maintenance Request Form",
         "description" => "Demo: \"Request form for repair of equipment from the worker.\"",
         "fields" => [
             "date" => [
@@ -205,6 +215,10 @@ return [
                 "label" => "Machine/Equipment name",
                 "type" => "text",
                 "rules" => ["required", "max:255"],
+                'depends_on' => [
+                        'field' => 'supervisor-notify',
+                        'disable_when' =>  "Yes",
+                    ],
             ],
             "machine-id" => [
                 'name' => 'machine-id',
@@ -248,7 +262,7 @@ return [
         ],
     ],
     "new-course" => [
-        "title" => "Add New Course Form",
+        "title" => "DEOM Add New Course Form",
         "description" => "Demo Form",
         "fields" => [
             "email" => [
@@ -314,7 +328,7 @@ return [
         ],
     ],
     'Customer Feedback' => [
-        'title' => 'Customer Feedback',
+        'title' => 'DEMO Customer Feedback',
         'description' => 'We value your feedback!',
         'fields' => [
             'name' => [
@@ -343,7 +357,7 @@ return [
         ],
     ],
     'event-registration' => [
-        'title' => 'Event Registration',
+        'title' => 'DEMO Event Registration',
         'description' => 'Sign up for our upcoming event.',
         'fields' => [
             'name' => [
