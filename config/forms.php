@@ -90,6 +90,10 @@ return [
                 "label" =>
                 "Timeframe of approval (Provide end dates) ",
                 "type" => "date",
+                'depends_on' => [
+                    'field' => 'permanent',
+                    'disable_when' => true,
+                ],
                 "rules" => [
                     "nullable",
                     "date",

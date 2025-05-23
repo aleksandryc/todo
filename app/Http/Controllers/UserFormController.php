@@ -8,6 +8,7 @@ use App\Services\UserForm\FormOutputServices;
 use App\Services\UserForm\FormRulesServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail as FacadesMail;
+use Inertia\Inertia;
 
 /**
  * Controller for managing user form submissions.
@@ -40,7 +41,7 @@ class UserFormController extends Controller
     public function index()
     {
         $forms = $this->formConfigServices->getAllForms();
-        return view('forms.index', compact('forms'));
+        return Inertia::render('Forms/Index', ['forms' => $forms]);
     }
 
     /**
@@ -54,7 +55,7 @@ class UserFormController extends Controller
         // Retrieve form configuration
         $formConfig = $this->formConfigServices->getFormConfig($formKey);
 
-        return view("forms.show", [
+        return Inertia::render("Forms/Show", [
             "formKey" => $formKey,
             "formConfig" => $formConfig,
             "formComponents" => $this->formConfigServices->extractFieldsWithType($formConfig),

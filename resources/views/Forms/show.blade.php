@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="{{ mix('postcss/app.css') }}">
 </head>
 <body class="min-h-screen bg-[#cfcdcc] print:bg-white print:pb-0">
     <div class="container bg-white rounded shadow mx-auto mt-2">
@@ -12,10 +12,10 @@
             {{$flash}}
         </div>
         @endif
-        <h1 class="text-2xl text-center">{{ $formConfig['title'] ?? 'Untiteled form'}}</h1>
-        <p class="text-md text-center max-w-xl mx-auto">{{ $formConfig['description'] ?? '' }}</p>
+        <h1 class="text-2xl text-center p-1 m-1">{{ $formConfig['title'] ?? 'Untiteled form'}}</h1>
+        <p class="text-md text-center max-w-xl p-1 m-1 mx-auto">{{ $formConfig['description'] ?? '' }}</p>
 
-        <form class="card mx-auto max-w-full px-4 py-2 rounded-md" action="{{ route('forms.submit', $formKey) }}" method="post" enctype="multipart/form-data">
+        <form class="card mx-auto max-w-full px-4 py-2 mt-2 rounded-md" action="{{ route('forms.submit', $formKey) }}" method="post" enctype="multipart/form-data">
             @csrf
             @foreach ($formComponents as $name => $field)
             <div class="mb-4">
@@ -32,42 +32,57 @@
                     name="{{ $name }}"
                     id="{{ $name }}"
                     value="{{ old($name) }}"
-                    class="w-full border rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}"
+                    class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}"
                     placeholder="{{ $field['placeholder'] ?? '' }}"
                     {{ !empty($field['required']) ? 'required' : '' }}>
                 @endif
 
                 @if ($field['type'] === 'textarea')
-                <textarea name="{{ $name }}" id="{{ $name }}" class="w-full border rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}" {{ !empty($field['required']) ? 'required' : '' }}>
-                {{ old($name) }}
-                </textarea>
+                <textarea
+                    name="{{ $name }}"
+                    id="{{ $name }}"
+                    class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}"
+                    {{ !empty($field['required']) ? 'required' : '' }}
+                    >{{ old($name) ? preg_replace('/[\p{C}]/u', '', old(text_field)) : '' }}</textarea>
                 @endif
 
                 @if ($field['type'] === 'select')
-                <select name="{{ $name }}" id="{{ $name }}" class="w-full border rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}" {{ !empty($field['required']) ? 'required' : '' }}>
+                <select
+                    name="{{ $name }}"
+                    id="{{ $name }}"
+                    class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}"
+                    {{ !empty($field['required']) ? 'required' : '' }}>
                     <option value="">--- Select ---</option>
                     @foreach ($field['options'] as $option)
-                    <option value="{{ $option }}" {{ old($name) === $option ? 'selected' : '' }}>
-                        {{ $option }}
-                    </option>
+                    <option value="{{ $option }}" {{ old($name) === $option ? 'selected' : '' }}>{{ $option }}</option>
                     @endforeach
                 </select>
                 @endif
 
                 @if ($field['type'] === 'radio')
-                <div class="flex gap-4 mt-1 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}">
+                <div class="flex gap-4 mt-1 w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}">
                     @foreach ($field['options'] as $option)
                     <label>
-                        <input type="{{ $field['type'] }}" name="{{ $name }}" value="{{ $option }}" {{ !empty($field['required']) ? 'required' : '' }}>
+                        <input
+                            type="{{ $field['type'] }}"
+                            name="{{ $name }}"
+                            value="{{ $option }}"
+                            {{ !empty($field['required']) ? 'required' : '' }}>
                         {{ $option }}
                     </label>
                     @endforeach
                 </div>
                 @endif
                 @if ($field['type'] === 'checkbox')
-                <div class="flex gap-4 mt-1 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}">
+                <div
+                    class="flex gap-4 mt-1
+                    {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}">
                     <label>
-                        <input type="checkbox" name="{{ $name }}" value="1" {{ !empty($field['required']) ? 'required' : '' }}>
+                        <input
+                            type="checkbox"
+                            name="{{ $name }}"
+                            value="1"
+                            {{ !empty($field['required']) ? 'required' : '' }}>
                         {{ $field['options'] }}
                     </label>
 
@@ -75,10 +90,13 @@
                 @endif
 
                 @if ($field['type'] === 'checkbox-group')
-                <div class="flex gap-4 mt-1 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}">
+                <div class="flex gap-4 mt-1 w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}">
                     @foreach ($field['options'] as $option)
                     <label>
-                        <input type="checkbox" name="{{ $name }}[]" value="{{ $option }}">
+                        <input type="checkbox"
+                        name="{{ $name }}[]"
+                        value="{{ $option }}"
+                        {{ !empty($field['required']) ? 'data-required' : '' }}>
                         {{ $option }}
                     </label>
                     @endforeach
@@ -86,7 +104,12 @@
                 @endif
 
                 @if ($field['type'] === 'file' || $field['type'] === 'url')
-                <input type="{{ $field['type'] }}" name="{{ $name }}" id="{{ $name }}" class="w-full border rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}" placeholder="{{ $field['placeholder'] ?? '' }}" {{ !empty($field['required']) ? 'required' : '' }}>
+                <input
+                    type="{{ $field['type'] }}"
+                    name="{{ $name }}" id="{{ $name }}"
+                    class="w-full border rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}"
+                    placeholder="{{ $field['placeholder'] ?? '' }}"
+                    {{ !empty($field['required']) ? 'required' : '' }}>
                 @endif
                 @error($name)
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -94,48 +117,135 @@
             </div>
             @endforeach
             <div class="mb-4">
-                <label
-                    for="mailRecipient"
-                    class="block font-semibold mb-1"
-                    >
+                <label for="mailRecipients" class="block font-semibold mb-1">
                     Send to:
                     <span class="text-red-500">*</span>
                 </label>
-                <input type="email"
-                name="mailRecipient"
-                id="mailRecipient"
-                value="{{ old('mailRecipient') }}"
-                class="w-full border rounded px-3 py-2 bg-[#fecaca]/25 border-[#f87171] }}"
-                placeholder="example@mail.com"
-                required>
-                 @error($name)
+                <input
+                    type="email"
+                    name="mailRecipients"
+                    id="mailRecipients"
+                    value="{{ old('mailRecipients') }}"
+                    class="w-full rounded px-3 py-2 focus:bg-green-100
+                    {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}"
+                    placeholder="example@mail.com"
+                    required>
+                @error("mailRecipients")
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="mb-4">
-                <label
-                    for="ccRecipient"
-                    class="block font-semibold mb-1"
-                    >
+                <label for="ccRecipients" class="block font-semibold mb-1">
                     Copy to:
                 </label>
-                <input type="email" multiple
-                name="ccRecipient"
-                id="ccRecipient"
-                value="{{ old('ccRecipient') }}"
-                class="w-full border rounded px-3 py-2"
-                placeholder="example@mail.com, another@mailaddres.com"
-                >
-                 @error($name)
+                <input
+                    type="email"
+                    multiple
+                    name="ccRecipients"
+                    id="ccRecipients"
+                    value="{{ old('ccRecipients') }}"
+                    class="w-full border rounded px-3 py-2 focus:bg-green-100"
+                    placeholder="example@mail.com, another@mailaddres.com">
+                @error('ccRecipients')
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
             <div class="flex justify-end gap-2">
                 <a href="{{ url()->previous() }}" class=" bg-[#645b54] px-4 py-2 rounded-md text-white hover:bg-[#333333]">Back</a>
-            <button type="reset" class="rounded-md px-4 py-2 border-[#9c382c] bg-[#ed9b82] hover:text-black hover:bg-[#e76f4f] hover:border-[#522322]">Clear form</button>
-            <button type="submit" class=" bg-[#39a57a] px-4 py-2 rounded-md text-white hover:bg-[#288257]">Send</button>
-        </div>
+                <button type="reset" class="rounded-md px-4 py-2 border-[#9c382c] bg-[#ed9b82] hover:text-black hover:bg-[#e76f4f] hover:border-[#522322]">Clear form</button>
+                <button type="submit" class=" bg-[#39a57a] px-4 py-2 rounded-md text-white hover:bg-[#288257]">Send</button>
+            </div>
         </form>
     </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (!form) return;
+
+    // Server Error Initialization
+    document.querySelectorAll('.text-red-500').forEach(errorElement => {
+        const field = errorElement.previousElementSibling;
+        if (field && field.matches('input, textarea, select')) {
+            validateField(field);
+        }
+    });
+
+    // Event Handlers
+    const fields = form.querySelectorAll('input, textarea, select, [data-required]');
+    fields.forEach(field => {
+        const events = ['input', 'blur'];
+        if (['radio', 'checkbox'].includes(field.type)) events.push('change');
+        events.forEach(event => field.addEventListener(event, () => validateField(field)));
+    });
+
+    // Validation on Submission
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        fields.forEach(field => {
+            if (!validateField(field)) isValid = false;
+        });
+        if (!isValid) {
+            e.preventDefault();
+            form.querySelector('.invalid')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    // Validation Functions
+    function validateField(field) {
+        let isValid = checkValidity(field);
+        updateStyles(field, isValid);
+        return isValid;
+    }
+
+    function checkValidity(field) {
+        if (field.type === 'checkbox' && field.name.endsWith('[]')) {
+            const checkboxes = document.querySelectorAll(`input[name="${field.name}"]`);
+            return checkboxes[0].hasAttribute('data-required')
+                ? Array.from(checkboxes).some(cb => cb.checked)
+                : true;
+        } else if (field.type === 'radio') {
+            const radios = document.querySelectorAll(`input[name="${field.name}"]`);
+            return field.required ? Array.from(radios).some(r => r.checked) : true;
+        }
+        return field.checkValidity();
+    }
+
+    function updateStyles(field, isValid) {
+        const container = field.closest('div');
+        const errorMessage = field.parentNode.querySelector('.error-message');
+
+        if (isValid) {
+            field.classList.remove('invalid');
+            container?.classList.remove('bg-[#fecaca]/25', 'border-[#f87171]');
+            errorMessage?.remove();
+        } else {
+            field.classList.add('invalid');
+            container?.classList.add('bg-[#fecaca]/25', 'border-[#f87171]');
+            showErrorMessage(field, errorMessage);
+        }
+    }
+
+    function showErrorMessage(field, existingError) {
+        const message = getErrorMessage(field);
+        if (!existingError) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-red-500 text-sm mt-1';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        } else {
+            existingError.textContent = message;
+        }
+    }
+
+    function getErrorMessage(field) {
+        if (field.validity.valueMissing) return 'This field is required.';
+        if (field.validity.typeMismatch) {
+            if (field.type === 'email') return 'Invalid email format.';
+            if (field.type === 'url') return 'Invalid URL format.';
+        }
+        return 'Invalid input.';
+    }
+});
+</script>
 </body>
 </html>
