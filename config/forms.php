@@ -2,6 +2,72 @@
 
 use Illuminate\Validation\Rule;
 
+/*
+Regular expression for phone number
+'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
+
+------------------------------------------------------------------------------
+In the configuration, you can specify rules both as an array and as a string:
+// Array
+"rules" => ["required", "string", "max:255"]
+
+// String
+"rules" => "required|string|max:255"
+
+------------------------------------------------------------------------------
+
+When the form configuration the checkbox is defined as:
+
+"field-name" => [
+    "label" => "Your Lable Here",
+    "type" => "checkbox",
+    'options' => 'Your option',
+    'value' => "permanent", // this value will be sent to PDF and email
+    .....
+],
+
+------------------------------------------------------------------------------
+
+if there is a group of checkboxes in the configuration,
+you can set "related-to" for the fields associated with them,
+and then when rendering the form they will be grouped in one block
+
+In the form configuration it should look like this:
+
+"type-of-access" => [
+    "type" => "checkbox-group",
+    "label" => "Type of access",
+    "options" => ["External Email Access", "External VPN Access"],
+],
+"email-device" => [
+    "type" => "text",
+    "label" => "Email Device",
+    "related-to" => "External Email Access",
+    "placeholder" => "Enter device for email access"
+],
+"vpn-device" => [
+    "type" => "text",
+    "label" => "VPN Device",
+    "related-to" => "External VPN Access",
+    "placeholder" => "Enter device for VPN access"
+]
+
+------------------------------------------------------------------------------
+
+If you set a dependency "depends_on" in the form configuration,
+the dependent field will be blocked or become active depending on the specified condition.
+
+Important:
+In the config for depends_on, specify the field name with [] for a group of checkboxes, for example:
+
+'depends_on' => [
+    'field' => 'access-type[]',
+    'disable_when' => 'External Email Access', // or Array of values
+],
+
+*/
+
+
 return [
     "external-access-request" => [
         "title" => "External Access Request",
@@ -49,6 +115,7 @@ return [
                     "label" =>
                     "Devices being used (MFA requires mobile phone): ",
                     "type" => "text",
+                    "related-to" => "External Email Access",
                     'depends_on' => [
                         'field' => 'access-type[]',
                         'disable_when' => 'External Email Access',
@@ -65,6 +132,7 @@ return [
                 "device-used-vpn" => [
                     "label" => "Devices being used: ",
                     "type" => "text",
+                    "related-to" => "External VPN Access",
                     'depends_on' => [
                         'field' => 'access-type[]',
                         'disable_when' => 'External VPN Access',
@@ -81,7 +149,7 @@ return [
             ],
             "date-range-start" => [
                 "label" =>
-                "Timeframe of approval (Provide start) ",
+                "Enter start date of approval ",
                 "type" => "date",
                 "rules" => ["nullable", "date"],
                 "conditional-rules" => [
@@ -94,7 +162,7 @@ return [
             ],
             "date-range-end" => [
                 "label" =>
-                "Timeframe of approval (Provide end dates) ",
+                "Enter end date of approval ",
                 "type" => "date",
                 'depends_on' => [
                     'field' => 'permanent',
@@ -116,10 +184,11 @@ return [
             ],
             "permanent" => [
                 "label" =>
-                "Timeframe of approval (or “Permanent”) ",
+                "",
                 "type" => "checkbox",
-                'options' => 'permanent',
-                "rules" => ["nullable", "boolean"],
+                'options' => 'Permanent',
+                'value' => "permanent",
+                "rules" => ["nullable"],
                 "required" => false,
                 'depends_on' => [
                     'field' => 'date-range-end',
@@ -134,58 +203,7 @@ return [
             ],
         ],
     ],
-    "new-employee" => [
-        "title" => "DEMO Add New Employee Form",
-        "description" => "Demo Form",
-        "fields" => [
-            "name" => [
-                "label" => "Full name",
-                "type" => "text",
-                "rules" => ["required", "max:255"],
-                "placeholder" => "Enter Full name",
-            ],
-            "shift" => [
-                "label" => "Shift",
-                "type" => "select",
-                "options" => [
-                    "Morden Day",
-                    "Morden Evening",
-                    "Office",
-                    "Winkler Day",
-                    "Winkler Evening",
-                    "Driver",
-                    "Cleaning",
-                ],
-                "rules" => ["required"],
-                "required" => true,
-            ],
-            "phone" => [
-                "label" => "Phone",
-                "type" => "tel",
-                "rules" => [
-                    "required",
-                    'regex:/^\\+?\\d{1,4}?[-.\\s]?\\(?\\d{1,3}?\\)?[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,4}[-.\\s]?\\d{1,9}$/',
-                ],
-                "placeholder" => "Enter phone number",
-            ],
-            "status" => [
-                "label" => "Active",
-                "type" => "radio",
-                "options" => ["Yes", "No"],
-                "rules" => ["required"],
-            ],
-            "supervisor" => [
-                "label" => "Supervisor",
-                "type" => "text",
-                "rules" => ["required", "max:255"],
-                "placeholder" => "Enter Full name of supervisor",
-            ],
-            "file" => [
-                "label" => "Photo",
-                "type" => "file",
-            ],
-        ],
-    ],
+
     "maintenance-request-form" => [
         "title" => "DEMO Maintenance Request Form",
         "description" => "Demo: \"Request form for repair of equipment from the worker.\"",
@@ -206,7 +224,10 @@ return [
             "department" => [
                 'name' => 'department-name',
                 "label" => "Department name",
-                "type" => "text",
+                "type" => "select",
+                "options" => [
+                    "Shiping", "Recieving", "Manufacturing"
+                ],
                 "rules" => ["required", "max:255"],
                 "required" => true,
             ],
@@ -216,9 +237,9 @@ return [
                 "type" => "text",
                 "rules" => ["required", "max:255"],
                 'depends_on' => [
-                        'field' => 'supervisor-notify',
-                        'disable_when' =>  "Yes",
-                    ],
+                    'field' => 'supervisor-notify',
+                    'disable_when' =>  "Yes",
+                ],
             ],
             "machine-id" => [
                 'name' => 'machine-id',

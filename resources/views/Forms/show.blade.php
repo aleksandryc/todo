@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+
     <title>{{ $formConfig['title'] ?? 'User Form' }}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
@@ -17,12 +17,15 @@
         @endif
         <h1 class="text-2xl text-center p-1 m-1">{{ $formConfig['title'] ?? 'Untiteled form'}}</h1>
         <p class="text-md text-center max-w-xl p-1 m-1 mx-auto">{{ $formConfig['description'] ?? '' }}</p>
-
         <form class="card mx-auto max-w-full px-4 py-2 mt-2 rounded-md" action="{{ route('forms.submit', $formKey) }}" method="post" enctype="multipart/form-data">
             @csrf
             @foreach ($formComponents as $name => $field)
             @php
             $depends = $field['depends_on'] ?? null;
+            // Skipping fields that are related (related-to)
+            if (!empty($field['related-to'])) {
+            continue;
+            }
             @endphp
             <div class="mb-4">
                 <label for="{{ $name }}" class="block font-semibold mb-1">
@@ -31,13 +34,13 @@
                     <span class="text-red-500">*</span>
                     @endif
                 </label>
-
                 @if (in_array($field['type'], ['text', 'email', 'date', 'tel']))
                 <input type="{{ $field['type'] }}" name="{{ $name }}" id="{{ $name }}" value="{{ old($name) }}" class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}" placeholder="{{ $field['placeholder'] ?? '' }}" {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
+
                 @endif
 
                 @if ($field['type'] === 'textarea')
-                <textarea name="{{ $name }}" id="{{ $name }}" class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}" {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>{{ old($name) ? preg_replace('/[\p{C}]/u', '', old(text_field)) : '' }}</textarea>
+                <textarea name="{{ $name }}" id="{{ $name }}" class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}" {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>{{ old($name) ? preg_replace('/[\p{C}]/u', '', old($name)) : '' }}</textarea>
                 @endif
 
                 @if ($field['type'] === 'select')
@@ -63,7 +66,7 @@
                 <div class="flex gap-4 mt-1
                     {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}">
                     <label>
-                        <input type="checkbox" name="{{ $name }}" value="1" {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
+                        <input type="checkbox" name="{{ $name }}" value="{{ $field['value'] ?? '1' }}" {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
                         {{ $field['options'] }}
                     </label>
 
@@ -71,12 +74,53 @@
                 @endif
 
                 @if ($field['type'] === 'checkbox-group')
-                <div class="flex gap-4 mt-1 w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}">
+                <div class="flex flex-col sm:flex-row gap-4 mt-1 w-full rounded px-3 py-2 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}">
                     @foreach ($field['options'] as $option)
-                    <label>
-                        <input type="checkbox" name="{{ $name }}[]" value="{{ $option }}" {{ !empty($field['required']) ? 'data-required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
-                        {{ $option }}
-                    </label>
+                        <div class="flex flex-col w-full sm:w-auto">
+                            <label class="flex items-start sm:items-center">
+                                <input type="checkbox"
+                                    name="{{ $name }}[]"
+                                    value="{{ $option }}"
+                                    {{ !empty($field['required']) ? 'data-required' : '' }}
+                                    class="form-checkbox mt-1 sm:mt-0"
+                                    @if($depends)
+                                    data-depends-on="{{ $depends['field'] }}"
+                                    data-disable-when="{{ json_encode($depends['disable_when']) }}"
+                                    @endif>
+                                <span class="ml-2 text-sm sm:text-base">{{ $option }}</span>
+                            </label>
+
+                            @if(!empty($formComponents))
+                                @foreach($formComponents as $relatedName => $relatedField)
+                                    @if(!empty($relatedField['related-to']) && $relatedField['related-to'] === $option)
+                                        <div class="mt-2 ml-4 sm:ml-8 w-full sm:w-64">
+                                            <label for="{{ $relatedName }}" class="block text-sm mb-1">
+                                                {{ $relatedField['label'] }}
+                                                @if (!empty($relatedField['required']))
+                                                    <span class="text-red-500">*</span>
+                                                @endif
+                                            </label>
+                                            @if (in_array($relatedField['type'], ['text', 'email', 'date', 'tel']))
+                                                <input type="{{ $relatedField['type'] }}"
+                                                    name="{{ $relatedName }}"
+                                                    id="{{ $relatedName }}"
+                                                    value="{{ old($relatedName) }}"
+                                                    class="w-full rounded px-3 py-2 text-sm focus:bg-green-100 {{ !empty($relatedField['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : ' border' }}"
+                                                    placeholder="{{ $relatedField['placeholder'] ?? '' }}"
+                                                    {{ !empty($relatedField['required']) ? 'required' : '' }}
+                                                    @if(!empty($relatedField['depends_on']))
+                                                    data-depends-on="{{ $relatedField['depends_on']['field'] }}"
+                                                    data-disable-when="{{ json_encode($relatedField['depends_on']['disable_when']) }}"
+                                                    @endif>
+                                            @endif
+                                            @error($relatedName)
+                                                <p class="text-red-500 text-xs sm:text-sm mt-1">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+                                    @endif
+                                @endforeach
+                            @endif
+                        </div>
                     @endforeach
                 </div>
                 @endif
@@ -146,9 +190,7 @@
                 if (!isValid) {
                     e.preventDefault();
                     form.querySelector('.invalid') ?? scrollIntoView({
-                        behavior: 'smooth'
-                        , block: 'center'
-                    , });
+                        behavior: 'smooth', block: 'center' });
                 }
             });
 
@@ -174,21 +216,39 @@
             function updateStyles(field, isValid) {
                 const container = field.closest('div');
                 const errorMessage = field.parentNode.querySelector('.error-message');
+                const isCheckbox = field.type === 'checkbox';
 
                 if (isValid) {
                     field.classList.remove('invalid');
-                    field.classList.remove('bg-[#fecaca]/25', 'border', 'border-[#f87171]');
-                    field.classList.add('bg-gray-50', 'border', 'border-gray-200');
-                    container?.classList.remove('bg-[#fecaca]/25', 'border-[#f87171]');
-                    errorMessage?.remove();
+                if (!isCheckbox) {
+                    field.classList.remove('bg-[#fecaca]/25', 'border-[#f87171]');
+                    field.classList.add('bg-gray-50', 'border-gray-200');
+                }
+                container?.classList.remove('bg-[#fecaca]/25', 'border-[#f87171]');
+                errorMessage?.remove();
                 } else {
                     field.classList.add('invalid');
-                    field.classList.add('bg-[#fecaca]/25', 'border', 'border-[#f87171]');
+                if (!isCheckbox) {
+                    field.classList.add('bg-[#fecaca]/25', 'border-[#f87171]');
                     field.classList.remove('bg-gray-50', 'border-gray-200');
-                    container?.classList.add('bg-[#fecaca]/25', 'border-[#f87171]');
-                    showErrorMessage(field, errorMessage);
                 }
-            }
+                container?.classList.add('bg-[#fecaca]/25', 'border-[#f87171]');
+                showErrorMessage(field, errorMessage);
+                }
+                // Updating checkbox container styles
+                    if (isCheckbox) {
+                        const checkboxContainer = field.closest('.flex.gap-4');
+                        if (checkboxContainer) {
+                            if (isValid) {
+                                checkboxContainer.classList.remove('bg-[#fecaca]/25', 'border-[#f87171]');
+                                checkboxContainer.classList.add('bg-gray-50', 'border-gray-200');
+                            } else {
+                                checkboxContainer.classList.add('bg-[#fecaca]/25', 'border-[#f87171]');
+                                checkboxContainer.classList.remove('bg-gray-50', 'border-gray-200');
+                            }
+                        }
+                    }
+                }
 
             function showErrorMessage(field, existingError) {
                 const message = getErrorMessage(field);
@@ -267,7 +327,7 @@
                 });
             }
 
-            // Навешиваем обработчики на все контролирующие поля для любых событий
+            // Attach handlers to all control fields for any events
             document.querySelectorAll('[data-depends-on]').forEach(function(depField) {
                 const dependsOn = depField.getAttribute('data-depends-on');
                 document.querySelectorAll(`[name="${dependsOn}"]`).forEach(controller => {
@@ -277,10 +337,10 @@
                 });
             });
             form.addEventListener('reset', function() {
-                // Даем браузеру сбросить значения, затем обновляем зависимости
+                // Let the browser reset the values, then update the dependencies
                 setTimeout(updateAllDependencies, 0);
             });
-            // Инициализация при загрузке
+            // Initialization on load
             updateAllDependencies();
         });
 

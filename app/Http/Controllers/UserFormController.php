@@ -55,7 +55,7 @@ class UserFormController extends Controller
         // Retrieve form configuration
         $formConfig = $this->formConfigServices->getFormConfig($formKey);
 
-        return view("Forms/Show", [
+        return Inertia::render("Forms/Show", [
             "formKey" => $formKey,
             "formConfig" => $formConfig,
             "formComponents" => $this->formConfigServices->extractFieldsWithType($formConfig),
