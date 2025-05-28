@@ -55,7 +55,7 @@ class UserFormController extends Controller
         // Retrieve form configuration
         $formConfig = $this->formConfigServices->getFormConfig($formKey);
 
-        return Inertia::render("Forms/Show", [
+        return view("Forms/Show", [
             "formKey" => $formKey,
             "formConfig" => $formConfig,
             "formComponents" => $this->formConfigServices->extractFieldsWithType($formConfig),
@@ -74,7 +74,7 @@ class UserFormController extends Controller
         $mailRecipients = [$request->mailRecipient];
         $ccRecipients = $request->ccRecipient ? array_map('trim', explode(',', $request->ccRecipient)) : [];
 
-        $formData = $request->all();
+        dd($formData = $request->all());
         $formComponents = $this->formConfigServices->getFormConfig($formKey);
         $formConfig = $this->formConfigServices->extractFieldsWithType($formComponents);
 
