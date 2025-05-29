@@ -101,8 +101,8 @@
                     Send to:
                     <span class="text-red-500">*</span>
                 </label>
-                <input type="email" name="mailRecipients" id="mailRecipients" value="{{ old('mailRecipients') }}" class="w-full rounded px-3 py-2 focus:bg-green-100
-                    {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}" placeholder="example@mail.com" required>
+                <input type="email" name="mailRecipients" id="mailRecipients" value="{{ old('mailRecipients') }}"
+                class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty('required') ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}" placeholder="example@mail.com" required>
                 @error("mailRecipients")
                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
