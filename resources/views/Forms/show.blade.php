@@ -15,6 +15,8 @@
             {{$flash}}
         </div>
         @endif
+
+        <x-forms.user-forms :formComponents="$formComponents"  :formConfig="$formConfig"/>
         <h1 class="text-2xl text-center p-1 m-1">{{ $formConfig['title'] ?? 'Untiteled form'}}</h1>
         <p class="text-md text-center max-w-xl p-1 m-1 mx-auto">{{ $formConfig['description'] ?? '' }}</p>
         <form class="card mx-auto max-w-full px-4 py-2 mt-2 rounded-md" action="{{ route('forms.submit', $formKey) }}" method="post" enctype="multipart/form-data">
@@ -27,13 +29,40 @@
             continue;
             }
             @endphp
-            <div class="mb-4">
+            <div class="mb-4" {{ !empty($field['hidden']) ? 'hidden' : '' }}>
+                @if(!empty($field['label']))
                 <label for="{{ $name }}" class="block font-semibold mb-1">
                     {{ $field['label'] }}
                     @if (!empty($field['required']))
                     <span class="text-red-500">*</span>
                     @endif
                 </label>
+                @endif
+
+                @if($field['type'] === 'number')
+                <input
+                    type="{{ $field['type'] }}"
+                    name="{{ $name }}"
+                    id="{{ $name }}"
+                    step="{{ $field['step'] ?? '' }}"
+                    min="{{ $field["min"] ?? '' }}"
+                    max="{{ $field["max"] ?? '' }}"
+                    minlength="{{ $field["minlength"] ?? '' }}"
+                    maxlength="{{ $field["maxlength"] ?? '' }}"
+                    value="{{ !empty($field['value']) ? $field['value'] : old($name) }}"
+                    class="w-full rounded px-3 py-2 focus:bg-green-100 {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}"
+                    placeholder="{{ $field['placeholder'] ?? '' }}"
+                    {{ !empty($field['required']) ? 'required' : '' }}
+                @if($depends)
+                    data-depends-on="{{ $depends['field'] }}"
+                    data-disable-when="{{ json_encode($depends['disable_when']) }}"
+                @endif>
+                @endif
+
+                @if(!empty($field['type'] === 'notes'))
+                <div class="{{ !empty($field['class']) ? $field['class'] : '' }}">{!! nl2br($field['value']) !!}</div>
+                @endif
+
                 @switch($field['type'])
                     @case('text')
                     @case('email')
