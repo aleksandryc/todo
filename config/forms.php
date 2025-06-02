@@ -79,14 +79,19 @@ It creates new <div> </div> in form, you can pass tailwind classes throgh "class
 
 ------------------------------------------------------------------------------
 
-To provide additional information in the PDF you can use this example
-So that it is not visible to the user, and is added to the PDF
+To provide additional information for office use only in the PDF you can use this example
 
-"supervisor_signature" => [
-    "name" => 'supervisor_signature',
-    "type" => "text",
-    "value" => '____________________',
-    "hidden" => true,
+// Hidden fields PDF
+
+'_hidden_fields' => [
+    "approved_supervison_signature" => [
+        "label" => 'approved_supervison_signature',
+        "value" => ' ',
+    ],
+    "approved_human_resources" => [
+        "label" => 'approved_human_resources',
+        "value" => ' ',
+    ],
 ],
 */
 
@@ -115,8 +120,8 @@ return [
                     "required" => true,
                 ],
             ],
-            "access-type" => [
-                "name" => "access-type",
+            "access_type" => [
+                "name" => "access_type",
                 "label" => "Type of Access (Check all that apply) ",
                 "type" => "checkbox-group",
                 "options" => [
@@ -134,43 +139,43 @@ return [
                 "required" => true,
             ],
             [
-                "Device-used-email" => [
+                "Device_used_email" => [
                     "label" =>
                     "Devices being used (MFA requires mobile phone): ",
                     "type" => "text",
                     "related-to" => "External Email Access",
                     'depends_on' => [
-                        'field' => 'access-type[]',
+                        'field' => 'access_type[]',
                         'disable_when' => 'External Email Access',
                     ],
                     "placeholder" => "MFA requires mobile phone",
                     "conditional-rules" => [
                         "when" => [
-                            "field" => "access-type",
+                            "field" => "access_type",
                             "value" => "External Email Access",
                             "rules" => ["required", "max:255"],
                         ],
                     ],
                 ],
-                "device-used-vpn" => [
+                "device_used_vpn" => [
                     "label" => "Devices being used: ",
                     "type" => "text",
                     "related-to" => "External VPN Access",
                     'depends_on' => [
-                        'field' => 'access-type[]',
+                        'field' => 'access_type[]',
                         'disable_when' => 'External VPN Access',
                     ],
                     "placeholder" => "MFA requires mobile phone",
                     "conditional-rules" => [
                         "when" => [
-                            "field" => "access-type",
+                            "field" => "access_type",
                             "value" => "External VPN Access",
                             "rules" => ["required", "max:255"],
                         ],
                     ],
                 ],
             ],
-            "date-range-start" => [
+            "date_range_start" => [
                 "label" =>
                 "Enter start date of approval ",
                 "type" => "date",
@@ -183,7 +188,7 @@ return [
                     ],
                 ],
             ],
-            "date-range-end" => [
+            "date_range_end" => [
                 "label" =>
                 "Enter end date of approval ",
                 "type" => "date",
@@ -194,7 +199,7 @@ return [
                 "rules" => [
                     "nullable",
                     "date",
-                    "after_or_equal:date-range-start",
+                    "after_or_equal:date_range_start",
                 ],
                 "required" => false,
                 "conditional-rules" => [
@@ -214,7 +219,7 @@ return [
                 "rules" => ["nullable"],
                 "required" => false,
                 'depends_on' => [
-                    'field' => 'date-range-end',
+                    'field' => 'date_range_end',
                     'disable_when' => 'filled',
                 ],
             ],
@@ -227,215 +232,6 @@ return [
         ],
     ],
 
-    "maintenance-request-form" => [
-        "title" => "DEMO Maintenance Request Form",
-        "description" => "Demo: \"Request form for repair of equipment from the worker.\"",
-        "fields" => [
-            "date" => [
-                "name" => 'date',
-                "label" => "Date",
-                "type" => "date",
-                "required" => true,
-            ],
-            "employee-name" => [
-                "name" => 'employee-name',
-                "label" => "Employee name",
-                "type" => "text",
-                "rules" => ["required", "max:255"],
-                "required" => true,
-            ],
-            "department" => [
-                'name' => 'department-name',
-                "label" => "Department name",
-                "type" => "select",
-                "options" => [
-                    "Shiping", "Recieving", "Manufacturing"
-                ],
-                "rules" => ["required", "max:255"],
-                "required" => true,
-            ],
-            "machine-name" => [
-                'name' => 'machine-name',
-                "label" => "Machine/Equipment name",
-                "type" => "text",
-                "rules" => ["required", "max:255"],
-                'depends_on' => [
-                    'field' => 'supervisor-notify',
-                    'disable_when' =>  "Yes",
-                ],
-            ],
-            "machine-id" => [
-                'name' => 'machine-id',
-                "label" => "Machine/Equipment ID ('optional')",
-                "type" => "text",
-                "rules" => ["nullable", "max:255"],
-            ],
-            "problem-description" => [
-                "name" => 'problem-desccription',
-                "label" => "Problem Description",
-                "type" => "textarea",
-                "rules" => ["required", "max:2048"],
-                "required" => true,
-            ],
-            "urgency-level" => [
-                "name" => 'urgency-level',
-                "label" => "Urgency level",
-                "type" => "radio",
-                "options" => [
-                    "Low (Minor issue, no impact on workflow)",
-                    "Medium (slows work but still operational)",
-                    "High (Machine not operational)",
-                ],
-                "rules" => ["required"],
-                "required" => true,
-            ],
-            "supervisor-notify" => [
-                "label" => "Has Supervisor Been Notified?",
-                "type" => "radio",
-                "options" => ["Yes", "No"],
-                "rules" => ["required"],
-                "required" => true,
-            ],
-            "submitted-by" => [
-                "name" => 'submitted-by',
-                "label" => "Submitted by ",
-                "type" => "text",
-                "rules" => ["required", "max:255"],
-                "required" => true,
-            ],
-        ],
-    ],
-    "new-course" => [
-        "title" => "DEOM Add New Course Form",
-        "description" => "Demo Form",
-        "fields" => [
-            "email" => [
-                "label" => "Email",
-                "type" => "email",
-                "rules" => [
-                    "required",
-                    "email",
-                    'regex: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/',
-                ],
-                "placeholder" => "Enter email",
-                "required" => true,
-            ],
-            "name" => [
-                "label" => "Course name",
-                "type" => "textarea",
-                "rules" => ["required", "max:255"],
-                "required" => true,
-            ],
-
-            "date" => [
-                "label" => "Hard Expiry Date",
-                "type" => "date",
-                "rules" => ["required"],
-                "required" => true,
-            ],
-
-            "valid" => [
-                "label" => "Default Valid Period",
-                "type" => "date", //TODO Four fields need to be added for chosing period (Years, Month, Weeks, Days)
-                "rules" => ["nullable"],
-            ],
-            "logo" => [
-                "label" => "Attach a file",
-                "type" => "file",
-                "rules" => ["nullable", "file", "max:2048"],
-                "required" => false,
-            ],
-            "type" => [
-                "label" => "Type of course",
-                "type" => "select",
-                "options" => [
-                    "Policies",
-                    "Toolbox Talks",
-                    "Manitoba SAFE Work Courses",
-                ],
-                "rules" => ["required"],
-                "required" => true,
-            ],
-            "website" => [
-                "label" => "Link to website",
-                "type" => "url",
-                "rules" => ["nullable", "url"],
-                "required" => false,
-                "placeholder" => "Example: https://example.com",
-            ],
-            "attachment" => [
-                "label" => "Attach a file",
-                "type" => "file",
-                "rules" => ["nullable", "file", "max:2048"],
-                "required" => false,
-            ],
-        ],
-    ],
-    'Customer Feedback' => [
-        'title' => 'DEMO Customer Feedback',
-        'description' => 'We value your feedback!',
-        'fields' => [
-            'name' => [
-                'label' => 'name',
-                'type' => 'text',
-                'required' => false,
-            ],
-            'email' => [
-                'label' => 'email',
-                'type' => 'email',
-                'required' => false,
-            ],
-            'rating' => [
-                'label' => 'rating',
-                'type' => 'radio',
-                "rules" => ["required"],
-                'required' => true,
-                'options' => ['1', '2', '3', '4', '5'],
-            ],
-            'comments' => [
-                'label' => 'comments',
-                'type' => 'textarea',
-                'required' => false,
-                'placeholder' => 'Share your thoughts...',
-            ],
-        ],
-    ],
-    'event-registration' => [
-        'title' => 'DEMO Event Registration',
-        'description' => 'Sign up for our upcoming event.',
-        'fields' => [
-            'name' => [
-                'label' => 'name',
-                'type' => 'text',
-                'required' => true,
-                'placeholder' => 'Enter your name',
-            ],
-            'email' => [
-                'label' => 'email',
-                'type' => 'email',
-                'required' => true,
-            ],
-            'number_of_tickets' => [
-                'label' => 'number_of_tickets',
-                'type' => 'select',
-                'required' => true,
-                'options' => ['1', '2', '3', '4', '5'],
-            ],
-            'meal_preference' => [
-                'label' => 'meal_preference',
-                'name' => 'meal',
-                'type' => 'radio',
-                'required' => false,
-                "rules" => ["nullable"],
-                'options' => ["Vegetarian", "Non-Vegetarian", "Vegan"],
-            ],
-            'special_requests' => [
-                'label' => 'special_requests',
-                'type' => 'textarea',
-                'required' => false,
-            ],
-        ],
-    ],
     "employee-referal" => [
         "title" => "New Employee Referal Form",
         "description" => "Employee Referral Form is used by employees to recommend potential candidates for open positions within a company.",
@@ -448,7 +244,7 @@ return [
                 "placeholder" => "Enter Full name",
                 "required" => true,
             ],
-            "referred-by" => [
+            "referred_by" => [
                 "name" => 'refferd',
                 "label" => "Reffered By",
                 "type" => "text",
@@ -456,8 +252,8 @@ return [
                 "placeholder" => "Enter Full name",
                 "required" => true,
             ],
-            "employee-number" => [
-                "name" => 'employee-number',
+            "employee_number" => [
+                "name" => 'employee_number',
                 "label" => "Employee #",
                 "type" => "number",
                 "step" => "1",
@@ -508,8 +304,8 @@ return [
                 "placeholder" => "Enter Full name",
                 "required" => true,
             ],
-            "employee-number" => [
-                "name" => 'employee-number',
+            "employee_number" => [
+                "name" => 'employee_number',
                 "label" => "Employee #",
                 "type" => "number",
                 "step" => "1",
@@ -564,24 +360,24 @@ return [
                 "rules" => ["nullable", "max:255"],
                 "placeholder" => "",
             ],
-            "position-requested" => [
-                "name" => 'position-requested',
+            "position_requested" => [
+                "name" => 'position_requested',
                 "label" => "Position requested",
                 "type" => "text",
                 "required" => true,
                 "rules" => ["required", "max:255"],
                 "placeholder" => "Enter your position requested",
             ],
-            "req-department" => [
-                "name" => 'req-department',
+            "requested_department" => [
+                "name" => 'requested_department',
                 "label" => "Department",
                 "type" => "text",
                 "required" => true,
                 "rules" => ["required", "max:255"],
                 "placeholder" => "Enter departmnet name to transfer",
             ],
-            "req-plant" => [
-                'name' => 'req-plant',
+            "requested_plant" => [
+                'name' => 'requested_plant',
                 "label" => "Plant",
                 "type" => "select",
                 "options" => [
@@ -591,8 +387,8 @@ return [
                 "rules" => ["required"],
                 "required" => true,
             ],
-            "req-shift" => [
-                'name' => 'req-shift',
+            "requested_shift" => [
+                'name' => 'requested_shift',
                 "label" => "Shift",
                 "type" => "select",
                 "options" => [
@@ -616,8 +412,8 @@ return [
                 'options' => ["Full Time", "Part Time"],
                 "required" => true,
             ],
-            "req-date" => [
-                "name" => "req-date",
+            "requested_date" => [
+                "name" => "requested_date",
                 "label" => "Requested Date of Transfer",
                 "type" => "date",
                 "rules" => [
@@ -626,8 +422,8 @@ return [
                 ],
                 "required" => true,
             ],
-            "reason-transfering" => [
-                "name" => 'reason-transfering',
+            "reason_transfering" => [
+                "name" => 'reason_transfering',
                 "label" => "Reason for transfering",
                 "type" => "text",
                 "required" => true,
@@ -641,49 +437,41 @@ return [
                 "required" => false,
                 "rules" => ["nullable", "max:22255"],
             ],
-            "application_recieved" => [
-                "name" => 'application_recieved',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "interview_date" => [
-                "name" => 'interview_date',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "to_be_int-viewed_by" => [
-                "name" => 'to_be_int-viewed_by',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "comments" => [
-                "name" => 'comments',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "action" => [
-                "name" => 'action',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "HR_manager" => [
-                "name" => 'HR_manager',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "date" => [
-                "name" => 'date',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
+            '_hidden_fields' => [
+                "application_recieved" => [
+                    "label" => 'application_recieved',
+                    "value" => ' ',
+                ],
+                "interview_date" => [
+                    "label" => 'interview_date',
+                    "value" => ' ',
+                ],
+                "to_be_int-viewed_by" => [
+                    "label" => 'to_be_int-viewed_by',
+                    "value" => ' ',
 
+                ],
+                "comments" => [
+                    "label" => 'comments',
+                    "value" => ' ',
+
+                ],
+                "action" => [
+                    "label" => 'action',
+                    "value" => ' ',
+
+                ],
+                "HR_manager" => [
+                    "label" => 'HR_manager',
+                    "value" => ' ',
+
+                ],
+                "date" => [
+                    "label" => 'date',
+                    "value" => ' ',
+
+                ],
+            ],
         ],
     ],
     'bereavement-leave' => [
@@ -839,17 +627,16 @@ return [
                 'placeholder' => 'Enter your initials',
                 'rules' => ["required", "max:15"],
             ],
-            "approved_supervison_signature" => [
-                "name" => 'approved_supervison_signature',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "approved_human_resources" => [
-                "name" => 'approved_human_resources',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
+            // Hidden fields PDF
+            '_hidden_fields' => [
+                "approved_supervison_signature" => [
+                    "label" => 'approved_supervison_signature',
+                    "value" => ' ',
+                ],
+                "approved_human_resources" => [
+                    "label" => 'approved_human_resources',
+                    "value" => ' ',
+                ],
             ],
         ],
     ],
@@ -861,7 +648,7 @@ return [
                 'label' => '',
                 'value' => 'Position Information',
                 'type' => 'notes',
-                'class' => 'py-1 px-2 bg-slate-600 text-white text-lg font-bold'
+                'class' => 'py-1 px-2 bg-slate-700 text-white text-lg font-bold'
             ],
             'type_of_position' => [
                 'label' => 'Type of position',
@@ -1069,7 +856,7 @@ return [
                 'label' => '',
                 'value' => 'Competency\'s needed for the job 0-10 ( please stay objective and as realistic as possible ) 0-not 5-needed10 -critical',
                 'type' => 'notes',
-                'class' => 'py-1 px-2 bg-slate-600 text-white text-lg font-bold'
+                'class' => 'py-1 px-2 bg-slate-700 text-white text-lg font-bold'
             ],
             'core_head' => [
                 'label' => '',
@@ -1382,79 +1169,55 @@ return [
                 ],
                 "placeholder" => "Enter text",
             ],
-            "supervisor_signature" => [
-                "name" => 'supervisor_signature',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "supervisor_signature_date" => [
-                "name" => 'supervisor_signature',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "production_manager_or_office_manager_signature" => [
-                "name" => 'production_manager_or_office_manager_signature',
-                "label" => "",
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "production_manager_or_office_manager_signature_date" => [
-                "name" => 'production_manager_or_office_manager_signature_date',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "Executive_vice_president_human_resources" => [
-                "name" => 'Executive_vice_president_human_resources',
-                "label" => "",
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "Executive_vice_president_human_resources_date" => [
-                "name" => 'Executive_vice_president_human_resources_date',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "position_escription_reviewed" => [
-                "name" => 'position_escription_reviewed',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "Previous_job_posting_reviewed" => [
-                "name" => 'Previous_job_posting_reviewed',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "media_dvertising_confirmed" => [
-                "name" => 'media_dvertising_confirmed',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "web_page_updated" => [
-                "name" => 'web_page_updated',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "in_house_posting_updated" => [
-                "name" => 'in_house_posting_updated',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
-            ],
-            "date" => [
-                "name" => 'date',
-                "type" => "text",
-                "value" => '____________________',
-                "hidden" => true,
+            '_hidden_fields' => [
+                "supervisor_signature" => [
+                    "label" => 'supervisor_signature',
+                    "value" => ' ',
+                ],
+                "supervisor_signature_date" => [
+                    "label" => 'date',
+                    "value" => ' ',
+                ],
+                "production_manager_or_office_manager_signature" => [
+                    "label" => 'production_manager_or_office_manager_signature',
+                    "value" => ' ',
+                ],
+                "production_manager_or_office_manager_signature_date" => [
+                    "label" => 'date',
+                    "value" => ' ',
+                ],
+                "Executive_vice_president_human_resources" => [
+                    "label" => 'Executive_vice_president_human_resources',
+                    "value" => ' ',
+                ],
+                "Executive_vice_president_human_resources_date" => [
+                    "label" => 'date',
+                    "value" => ' ',
+                ],
+                "position_description_reviewed" => [
+                    "label" => 'position_description_reviewed',
+                    "value" => ' ',
+                ],
+                "Previous_job_posting_reviewed" => [
+                    "label" => 'Previous_job_posting_reviewed',
+                    "value" => ' ',
+                ],
+                "media_advertising_confirmed" => [
+                    "label" => 'media_advertising_confirmed',
+                    "value" => ' ',
+                ],
+                "web_page_updated" => [
+                    "label" => 'web_page_updated',
+                    "value" => ' ',
+                ],
+                "in_house_posting_updated" => [
+                    "label" => 'in_house_posting_updated',
+                    "value" => ' ',
+                ],
+                "date" => [
+                    "label" => 'date',
+                    "value" => ' ',
+                ],
             ],
         ],
     ],

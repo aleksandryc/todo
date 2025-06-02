@@ -1,5 +1,5 @@
 <div
-    class="flex flex-col sm:flex-row gap-4 mt-1 w-full rounded p-2
+    class="flex flex-col md:flex-row gap-4 mt-1 w-full rounded p-2
     {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border border-[#f87171]' : 'bg-gray-50 border border-gray-200' }}">
     @foreach ($field['options'] as $option)
         <div class="flex flex-col w-fit sm:w-auto">

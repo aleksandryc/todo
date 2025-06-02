@@ -8,6 +8,17 @@ namespace App\Services\UserForm;
 class FormConfigServices
 {
     /**
+     * Retrieve hidden fields from the form configuration.
+     *
+     * @param array $formConfig The full form configuration array.
+     * @return array An array of hidden fields, or an empty array if not defined.
+     */
+    public function getHiddenFields(array $formConfig): array
+    {
+        return $formConfig['fields']['_hidden_fields'] ?? [];
+    }
+
+    /**
      * Get form configuration by key.
      *
      * @param string $formKey The key of the form configuration.
@@ -17,7 +28,12 @@ class FormConfigServices
     {
         // Retrieve the form configuration from config/forms.php by key
         // If the form is not found, return a 404 error response
-        return config("forms.$formKey") ?? abort(404, 'Form Not Found');
+        $config =  config("forms.$formKey") ?? abort(404, 'Form Not Found');
+
+        // Extract hidden fields before returning configuration
+        $config['_hidden_fields'] = $this->getHiddenFields($config);
+
+        return $config;
     }
 
     /**

@@ -104,7 +104,7 @@ class FormOutputServices
      * @param array $embeddedImages The embedded images for display.
      * @return array [PDF data, PDF file path]
      */
-    public function generatePdf(string $formName, array $validatedData, array $embeddedImages): array
+    public function generatePdf(string $formName, array $validatedData, array $embeddedImages, array $hiddenFields = []): array
     {
         $logoPath = storage_path('app/public/logo-96x96.png');
         $logo = 'data:' . File::mimeType($logoPath) . ';base64,' . base64_encode(File::get($logoPath));
@@ -115,6 +115,7 @@ class FormOutputServices
             'logo' => $logo,
             "fields" => $validatedData,
             "embeddedImages" => $embeddedImages,
+            "hiddenFields" => $hiddenFields // Add hidden fields
         ];
 
         // Create a PDF from the view template
