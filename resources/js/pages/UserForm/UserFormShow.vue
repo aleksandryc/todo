@@ -3,22 +3,25 @@
     <form @submit.prevent="onSubmit">
       <h2 class="text-center text-3xl">{{ formComponent.title }}</h2>
       <input type="hidden" name="formKey" :value="form.formKey" />
-      <div v-for="(field, key) in formComponent.fields" :key="key" class="m-1">
+      <div
+        v-for="(field, key) in formComponent.fields"
+        :key="key as string"
+        class="m-1">
         <FormInput
           v-if="field.type === 'select'"
-          v-bind="getFieldAttrs(field, key)"
-          @change="form.validate(key)">
+          v-bind="getFieldAttrs(field, key as string)"
+          @change="form.validate(key as keyof MyFormDataType)">
           <BetterSelectBasic
-            v-model:selected="(form as any)[key]"
-            v-bind="getFieldAttrs(field, key)"
+            v-model:selected="form[key as keyof typeof props.formComponent.fields]"
+            v-bind="getFieldAttrs(field, key as string)"
             :values="Array.isArray(field.value) ? field.value : []"
             :require-search="false" />
         </FormInput>
         <component
           :is="componentMap[field.type] || 'div'"
-          v-model="(form as any)[key]"
-          v-bind="getFieldAttrs(field, key)"
-          @change="form.validate(key)" />
+          v-model="form[key as keyof typeof props.formComponent.fields]"
+          v-bind="getFieldAttrs(field, key as string)"
+          @change="form.validate(key as keyof MyFormDataType)" />
         <div v-if="field.type === 'notes'" class="my-3">
           <div v-if="field.label" class="text-sm">{{ field.label }}</div>
           <div
@@ -68,7 +71,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useForm } from "laravel-precognition-vue-inertia";
-import type { FormComponent } from "./types";
+import type {
+  FormComponent,
+  FormDataType,
+  FormField,
+  KnownFieldType,
+  Dependency,
+} from "./types";
 import FormInput from "$/Components/FormInput.vue";
 import CheckBoxInput from "$/Components/Pages/UserForm/CheckBoxInput.vue";
 import CheckBoxGroupInput from "$/Components/Pages/UserForm/CheckBoxGroupInput.vue";
@@ -81,7 +90,7 @@ const props = defineProps<{
   formComponent: FormComponent;
 }>();
 
-const componentMap: Record<string, unknown> = {
+const componentMap: Record<KnownFieldType, unknown> = {
   "text": FormInput,
   "number": FormInput,
   "date": FormInput,
@@ -93,21 +102,58 @@ const componentMap: Record<string, unknown> = {
   "url": FormInput,
   "email": FormInput,
   "tel": FormInput,
-} as const;
+  "select": FormInput, // Added: Assuming FormInput can handle select via type or it's a placeholder
+  "notes": "div", // Added: Special handling for notes
+};
 
-const initialValues = Object.fromEntries(
-  Object.entries(props.formComponent.fields).map(([key, field]) => [
-    key,
-    field.value !== undefined
-      ? field.value
-      : field.type === "checkbox-group"
-        ? []
-        : "",
-  ]),
-);
+// Define the type for our form data using the generic FormDataType
+type MyFormDataType = FormDataType<typeof props.formComponent.fields>;
 
-const form = useForm("post", "/forms", {
-  ...initialValues,
+// Type for the part of MyFormDataType that corresponds to formComponent.fields
+type FormFieldsDataType = Pick<
+  MyFormDataType,
+  keyof typeof props.formComponent.fields
+>;
+
+const initialFieldValues = Object.fromEntries(
+  Object.entries(props.formComponent.fields).map(([key, field]) => {
+    let value: string | number | boolean | string[] | null;
+    if (field.value !== undefined) {
+      switch (field.type) {
+        case "checkbox-group":
+          value = Array.isArray(field.value) ? (field.value as string[]) : [];
+          break;
+        case "checkbox":
+          value = typeof field.value === "boolean" ? field.value : false;
+          break;
+        case "number":
+          value = typeof field.value === "number" ? field.value : null;
+          break;
+        default: // Includes string, date, select, etc.
+          value = String(field.value ?? ""); // Ensure it's a string
+      }
+    } else {
+      // Default initial values based on field type defined in MyFormDataType
+      switch (field.type) {
+        case "checkbox-group":
+          value = [];
+          break;
+        case "checkbox":
+          value = false;
+          break;
+        case "number":
+          value = null;
+          break;
+        default:
+          value = "";
+      }
+    }
+    return [key, value];
+  }),
+) as FormFieldsDataType;
+
+const form = useForm<MyFormDataType>("post", "/forms", {
+  ...initialFieldValues,
   mailRecipients: "",
   ccRecipients: "",
   formKey: props.formComponent.formKey,
@@ -130,14 +176,18 @@ const disabledStates = computed(() => {
       continue;
     }
 
-    isDisabled = !!dependencies[0]?.disabled;
+    isDisabled = !!dependencies[0]?.disabled; // Initial assumption based on first dependency
 
-    dependencies.forEach((dep) => {
-      const depField = dep.field.replace(/\[\]$/, "");
-      const depValue = form[depField as keyof typeof form];
+    dependencies.forEach((dep: Dependency) => {
+      const depFieldKey = dep.field.replace(
+        /\[\]$/,
+        "",
+      ) as keyof FormFieldsDataType;
+      const depValue = form[depFieldKey];
 
       if (
         "active_when" in dep &&
+        dep.active_when !== undefined &&
         checkDependencyCondition(depValue, dep.active_when)
       ) {
         isDisabled = false;
@@ -145,91 +195,114 @@ const disabledStates = computed(() => {
 
       if (
         "disable_when" in dep &&
+        dep.disable_when !== undefined &&
         checkDependencyCondition(depValue, dep.disable_when)
       ) {
         isDisabled = true;
       }
     });
-
     result[fieldKey] = isDisabled;
   }
-
   return result;
 });
 
-function checkDependencyCondition(depValue: unknown, when: unknown): boolean {
+function checkDependencyCondition(
+  depValue: string | number | boolean | string[] | null, // Value from form data
+  when: boolean | string | string[] | undefined, // Condition from dependency config
+): boolean {
+  if (when === undefined) return false;
+
   if (when === "filled") {
     if (Array.isArray(depValue)) return depValue.length > 0;
     return depValue !== undefined && depValue !== null && depValue !== "";
   }
 
   if (Array.isArray(when)) {
+    // Condition is an array of possible values
     if (Array.isArray(depValue)) {
-      return when.some((val) => depValue.includes(val));
+      // Field value is an array (e.g., checkbox-group)
+      return when.some((val) => depValue.includes(val as never)); // Cast needed if types don't overlap perfectly
     }
-    return when.includes(depValue);
+    // Field value is a single value, check if it's in the 'when' array
+    return when.includes(depValue as never); // Cast needed
   }
 
+  // 'when' is a single specific value (string or boolean)
   if (Array.isArray(depValue)) {
-    return depValue.includes(when);
+    // Field value is an array, check if 'when' is one of its elements
+    return depValue.includes(when as never); // Cast needed
   }
 
   if (typeof when === "boolean") {
     return Boolean(depValue) === when;
   }
-
+  // General comparison for string/number
   return depValue == when;
 }
 
 const dynamicRequired = computed(() => {
   const result: Record<string, boolean> = {};
+  const fieldKeys = Object.keys(
+    props.formComponent.fields,
+  ) as (keyof FormFieldsDataType)[];
 
-  for (const [key, field] of Object.entries(props.formComponent.fields)) {
-    if (!field?.required) continue;
-    result[key] = false;
+  for (const key of fieldKeys) {
+    const field = props.formComponent.fields[key];
+    if (!field?.required) {
+      result[key as string] = false; // Not required by config
+      continue;
+    }
 
+    // If required by config, then check its actual state for dynamic requirement
+    const value = form[key];
     if (field.type === "checkbox-group") {
-      const value = form[key as keyof typeof form];
-      result[key] =
-        field.type === "checkbox-group"
-          ? !(Array.isArray(value) && value.length > 0)
-          : true;
+      result[key as string] = !(Array.isArray(value) && value.length > 0);
     } else if (field.type === "radio") {
-      const value = form[key as keyof typeof form];
-      result[key] = value === undefined || value === null || value === "";
+      // For radio, it's required if value is empty (initial state)
+      result[key as string] = value === undefined || value === null || value === "";
     } else {
-      result[key] = true;
+      // For other types, if marked required, it's generally required to be non-empty
+      // FormInput component usually handles this with its own validation display
+      result[key as string] = true; // Let FormInput handle empty check if it's a simple text input etc.
+                                  // Or more specific: result[key as string] = value === "";
     }
   }
   return result;
 });
 
 function getFieldAttrs(
-  field: (typeof props.formComponent.fields)[string],
-  key: string,
+  field: FormField, // field is now more strongly typed
+  key: string, // key is a string, but corresponds to a key in formComponent.fields
 ) {
+  const typedKey = key as keyof FormFieldsDataType;
   const raw = {
     name: key,
     label: field.label,
-    type: field.type,
+    type: field.type, // KnownFieldType
     placeholder: field.placeholder,
-    required: dynamicRequired.value[key],
+    required: dynamicRequired.value[key], // Assuming key is string here
     options: field.options,
-    values: field.value,
+    // field.value is the initial config value, form[typedKey] is the current reactive value
+    // For 'values' prop, it depends on what child components expect.
+    // If 'values' is for initial/default, use field.value.
+    // If it's for current bound value, it's already handled by v-model.
+    // Let's assume 'values' is for options or initial setup if not v-model related.
+    values: field.value, // This was original, might be for specific components like radio/checkbox group options if not in 'options'
     max: field.max,
     min: field.min,
     step: field.step,
-    disabled: disabledStates.value[key],
-    error: (form.errors as Record<string, string | undefined>)[key],
+    disabled: disabledStates.value[key], // Assuming key is string here
+    error: form.errors[typedKey],
   };
 
   return Object.fromEntries(
     Object.entries(raw).filter(
-      ([_, val]) =>
+      ([_, val])
         val !== undefined &&
         val !== null &&
-        val !== "" &&
-        !(Array.isArray(val) && val.length === 0),
+        // Allow empty string for some attributes like placeholder
+        // val !== "" && // Re-evaluating this: empty placeholder is valid
+        !(Array.isArray(val) && val.length === 0), // Empty arrays for options might be filtered
     ),
   );
 }
