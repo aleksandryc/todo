@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Mail\UserForms;
+namespace App\Mail\UserForm;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 
 class UserFormSubmission extends Mailable
@@ -17,7 +16,10 @@ class UserFormSubmission extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(public array $data, private string $pdf) {}
+    public function __construct()
+    {
+        //
+    }
 
     /**
      * Get the message envelope.
@@ -25,8 +27,7 @@ class UserFormSubmission extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "New Form Submission" . (!empty($this->data["title"]) ? " " . $this->data["title"] : ""),
-
+            subject: 'User Form Submission',
         );
     }
 
@@ -35,7 +36,9 @@ class UserFormSubmission extends Mailable
      */
     public function content(): Content
     {
-        return new Content(markdown: "mail.user-forms.user-form-submission");
+        return new Content(
+            markdown: 'mail.user-form.user-form-submission',
+        );
     }
 
     /**
@@ -45,11 +48,6 @@ class UserFormSubmission extends Mailable
      */
     public function attachments(): array
     {
-        return [
-            Attachment::fromData(
-                fn() => $this->pdf,
-                "form_submission.pdf",
-            )->withMime("application/pdf"),
-        ];
+        return [];
     }
 }

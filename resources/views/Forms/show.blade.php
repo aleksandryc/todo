@@ -127,7 +127,15 @@
                 @endif
 
                 @if ($field['type'] === 'file' || $field['type'] === 'url')
-                <input type="{{ $field['type'] }}" name="{{ $name }}" id="{{ $name }}" class="form-input {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}" placeholder="{{ $field['placeholder'] ?? '' }}" accept={{ $field['accept'] ?? '.jpg, .jpeg, .png, .pdf, .doc, .docs, .xls, .xlsx' }} {{ !empty($field['required']) ? 'required' : '' }} @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
+                <input
+                    type="{{ $field['type'] }}"
+                    name="{{ $name }}"
+                    id="{{ $name }}"
+                    class="form-input {{ !empty($field['required']) ? 'bg-[#fecaca]/25 border-[#f87171]' : '' }}"
+                    placeholder="{{ $field['placeholder'] ?? '' }}"
+                    accept={{ $field['accept'] ?? '.jpg, .jpeg, .png, .pdf, .doc, .docs, .xls, .xlsx' }}
+                    {{ !empty($field['required']) ? 'required' : '' }}
+                    @if($depends) data-depends-on="{{ $depends['field'] }}" data-disable-when="{{ json_encode($depends['disable_when']) }}" @endif>
                 @endif
 
                 @if(!empty($field['type'] === 'notes'))
